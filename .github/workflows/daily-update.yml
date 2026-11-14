@@ -1,0 +1,36 @@
+name: Update LEGO deals API
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 08:00 AEST / 09:00 AEDT. GitHub Actions cron is UTC.
+    - cron: "0 22 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Refresh JSON API
+        run: python scraper/update_api.py
+      - name: Commit updated API files
+        run: |
+          if [[ -n "$(git status --porcelain api)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add api/
+            git commit -m "Update LEGO deals API"
+            git push
+          else
+            echo "API files are unchanged."
+          fi
