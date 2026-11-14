@@ -1,31 +1,35 @@
 # LEGO Deals API
 
-A daily-updated JSON feed for LEGO products at Myer Australia with a verified discount of at least 20% against the Australian LEGO RRP.
+A daily-updated JSON feed for LEGO products listed by Myer Australia with a verified discount of at least 20% against the Australian LEGO RRP.
 
-## API endpoints
+## JSON endpoints
 
-Once GitHub Pages is enabled for this repository:
+After GitHub Pages has been enabled and the first deployment succeeds:
 
-- `https://xuwangdaalex.github.io/lego-deals/api/lego-deals.json` — qualifying deals
-- `https://xuwangdaalex.github.io/lego-deals/api/all-products.json` — products checked by the scraper
-- `https://xuwangdaalex.github.io/lego-deals/api/last-updated.json` — latest run status
+- **Qualifying deals:** https://xuwangdaalex.github.io/lego-deals/api/lego-deals.json
+- **All products checked:** https://xuwangdaalex.github.io/lego-deals/api/all-products.json
+- **Latest run status:** https://xuwangdaalex.github.io/lego-deals/api/last-updated.json
+- **Run history:** https://xuwangdaalex.github.io/lego-deals/api/history.json
 
-## Important data-quality rule
+Raw GitHub file URLs are also available for a public repository, for example:
+`https://raw.githubusercontent.com/xuwangdaalex/lego-deals/main/api/lego-deals.json`
 
-A product is included only when its Myer price and Australian LEGO RRP can both be verified for the same set. The discount is calculated as:
+## Discount calculation and verification
 
 `(rrp_aud - myer_price_aud) / rrp_aud * 100`
 
-The threshold is inclusive (20% or more). A failed or incomplete scrape must be reported as incomplete; it must not invent prices or claim full catalogue coverage.
+The threshold is inclusive (20% or more). The scraper only marks a product as verified when it can read Myer product pricing and a matching set number's Australian RRP from LEGO's official product data. Myer's crossed-out or previous price is not used as RRP.
 
-## Automation
+Scraping is best-effort and site markup/sitemaps can change. The API reports coverage as `complete` or `incomplete`; an incomplete run must not be interpreted as proof that no deals exist. Products with unverified RRP are not included in the deals feed.
 
-The GitHub Actions workflow is intended to run daily at 8:00 AM Sydney time (22:00 UTC on the previous day during AEDT, 23:00 UTC during AEST; the workflow schedule uses UTC and will need seasonal adjustment or a timezone-aware scheduler).
+## Daily automation
 
-## Setup
+GitHub Actions checks at the two UTC hours that cover 08:00 Sydney time across daylight-saving changes. The script runs only when Sydney local time is 08:00. You can also run it manually from the **Actions** tab.
 
-1. In GitHub, open **Settings → Pages** and publish from the `main` branch, root folder.
-2. Enable GitHub Actions if prompted.
-3. Check the **Actions** tab after the first scheduled or manual run.
+## One-time setup
 
-The initial API files contain empty, clearly marked data until a verified scrape has completed.
+1. Open repository **Settings → Pages**.
+2. Under **Build and deployment → Source**, select **GitHub Actions**.
+3. Open **Actions** and run **Update LEGO deals API** once using **Run workflow**.
+
+GitHub Pages sites are publicly accessible. If you want a public API endpoint, make sure the repository and its contents are appropriate to publish.
