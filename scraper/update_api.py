@@ -21,7 +21,9 @@ from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "api"
-TIMEOUT = 25
+CONNECT_TIMEOUT = 10
+READ_TIMEOUT = 45
+REQUEST_ATTEMPTS = 3
 THRESHOLD = 20.0
 MAX_PAGES = 20
 MAX_PRODUCTS_PER_RETAILER = 500
@@ -93,9 +95,31 @@ def session():
 
 
 def get(url: str) -> str:
-    response = session().get(url, timeout=TIMEOUT)
-    response.raise_for_status()
-    return response.text
+    """Fetch a page with retries for transient retailer timeouts and server errors."""
+    last_error = None
+    for attempt in range(REQUEST_ATTEMPTS):
+        try:
+            response = session().get(url, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
+            if response.status_code == 429 or response.status_code >= 500:
+                response.raise_for_status()
+            response.raise_for_status()
+            return response.text
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
+            last_error = exc
+        except requests.exceptions.HTTPError as exc:
+            # Retry rate limits and temporary upstream failures, but not ordinary 4xx errors.
+            status = exc.response.status_code if exc.response is not None else None
+            if status != 429 and (status is None or status < 500):
+                raise
+            last_error = exc
+
+        if attempt < REQUEST_ATTEMPTS - 1:
+            delay = 2 ** (attempt + 1)
+            print(f"Temporary fetch failure for {url}; retrying in {delay}s "
+                  f"({attempt + 1}/{REQUEST_ATTEMPTS - 1}).")
+            time.sleep(delay)
+
+    raise last_error
 
 
 def jsonld_objects(soup: BeautifulSoup):
