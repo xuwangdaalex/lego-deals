@@ -19,6 +19,11 @@ from zoneinfo import ZoneInfo
 import requests
 from bs4 import BeautifulSoup
 
+try:
+    from playwright.sync_api import sync_playwright
+except ImportError:
+    sync_playwright = None
+
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "api"
 CONNECT_TIMEOUT = 10
@@ -107,22 +112,45 @@ def session():
     return _local.session
 
 
+def format_error(exc: Exception) -> str:
+    """Return useful diagnostics without dumping a full response body."""
+    if isinstance(exc, requests.exceptions.HTTPError) and exc.response is not None:
+        return f"HTTP {exc.response.status_code}"
+    if isinstance(exc, requests.exceptions.Timeout):
+        return "ReadTimeout/ConnectTimeout"
+    return type(exc).__name__
+
+
+def browser_get(url: str) -> str:
+    """Render a public page with a normal headless browser when requests cannot render it."""
+    if sync_playwright is None:
+        raise RuntimeError("Playwright is not installed")
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        try:
+            page = browser.new_page(locale="en-AU")
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            # Allow client-side catalogue/product data to populate.
+            page.wait_for_timeout(2500)
+            return page.content()
+        finally:
+            browser.close()
+
+
 def get(url: str) -> str:
-    """Fetch a page with retries for transient retailer timeouts and server errors."""
+    """Fetch with requests first; use a standard browser only for transient failures."""
     last_error = None
     for attempt in range(REQUEST_ATTEMPTS):
         try:
             response = session().get(url, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
-            if response.status_code == 429 or response.status_code >= 500:
-                response.raise_for_status()
             response.raise_for_status()
             return response.text
         except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
             last_error = exc
         except requests.exceptions.HTTPError as exc:
-            # Retry rate limits and temporary upstream failures, but not ordinary 4xx errors.
             status = exc.response.status_code if exc.response is not None else None
-            if status != 429 and (status is None or status < 500):
+            # Do not try to work around access-denied or other permanent 4xx responses.
+            if status is not None and 400 <= status < 500 and status != 429:
                 raise
             last_error = exc
 
@@ -132,7 +160,16 @@ def get(url: str) -> str:
                   f"({attempt + 1}/{REQUEST_ATTEMPTS - 1}).")
             time.sleep(delay)
 
-    raise last_error
+    # Browser rendering can help with slow or JS-rendered public pages. It does not
+    # attempt to bypass CAPTCHAs, authentication, or access-denied responses.
+    try:
+        print(f"Trying normal browser rendering for {url} after {format_error(last_error)}.")
+        return browser_get(url)
+    except Exception as browser_exc:
+        raise RuntimeError(
+            f"requests failed ({format_error(last_error)}); "
+            f"browser fallback failed ({format_error(browser_exc)})"
+        ) from browser_exc
 
 
 def jsonld_objects(soup: BeautifulSoup):
@@ -243,7 +280,9 @@ def discover_product_urls(retailer_key: str):
         try:
             soup = BeautifulSoup(get(page_url), "html.parser")
         except Exception as exc:
-            errors.append(f"{config['name']} catalogue page {page}: {type(exc).__name__}")
+            errors.append(
+                f"{config['name']} catalogue page {page}: {format_error(exc)} ({page_url})"
+            )
             break
 
         found = []
@@ -262,9 +301,33 @@ def discover_product_urls(retailer_key: str):
             found.append(href.split("?")[0].rstrip("/"))
 
         unique = list(dict.fromkeys(found))
+        if not unique and page == 1 and sync_playwright is not None:
+            # Some catalogues render their product cards only after JavaScript runs.
+            try:
+                browser_html = browser_get(page_url)
+                browser_soup = BeautifulSoup(browser_html, "html.parser")
+                browser_found = []
+                for anchor in browser_soup.select("a[href]"):
+                    href = urljoin(page_url, anchor.get("href", "").strip())
+                    parsed = urlparse(href)
+                    host = parsed.netloc.lower().removeprefix("www.")
+                    path = parsed.path.lower()
+                    if host.endswith(config["host"]) and any(
+                        part in path for part in config["product_path"]
+                    ):
+                        label = " ".join((anchor.get_text(" ", strip=True), path)).lower()
+                        if "lego" in label or re.search(r"(?<!\\d)\\d{4,6}(?!\\d)", label):
+                            browser_found.append(href.split("?")[0].rstrip("/"))
+                unique = list(dict.fromkeys(browser_found))
+            except Exception as exc:
+                errors.append(
+                    f"{config['name']} browser catalogue fallback: {format_error(exc)} ({page_url})"
+                )
         if not unique:
             if page == 1:
-                errors.append(f"{config['name']} catalogue returned no product links (possibly JS-rendered or blocked).")
+                errors.append(
+                    f"{config['name']} catalogue returned no product links after normal and browser fetch ({page_url})."
+                )
             break
         signature = tuple(unique)
         if signature in seen_pages:
@@ -447,7 +510,10 @@ def main():
                     all_products.append(record)
                     retailer_coverage[key]["products_with_prices_checked"] += 1
             except Exception as exc:
-                msg = f"{RETAILERS[key]['name']} product fetch failed: {type(exc).__name__}"
+                msg = (
+                    f"{RETAILERS[key]['name']} product fetch failed: "
+                    f"{format_error(exc)} ({url})"
+                )
                 retailer_coverage[key]["errors"].append(msg)
                 errors.append(msg)
 
@@ -478,7 +544,9 @@ def main():
                     errors.append(f"LEGO AU RRP could not be verified for set {number}.")
             except Exception as exc:
                 rrp_cache[number] = None
-                errors.append(f"LEGO AU lookup failed for set {number}: {type(exc).__name__}")
+                errors.append(
+                    f"LEGO AU lookup failed for set {number}: {format_error(exc)}"
+                )
 
     for product in all_products:
         number = product["set_number"]
