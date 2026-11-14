@@ -407,6 +407,61 @@ def set_number(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+
+def check_listing(retailer_key: str, url: str):
+    """Read one retailer listing and normalize it to the API product schema."""
+    data = extract_product_data(url, retailer_key)
+    if not data:
+        return None
+
+    name = str(data.get("name") or "").strip()
+    sku = str(data.get("sku") or "").strip()
+    number = set_number(" ".join((sku, name, url)))
+    if not number:
+        return None
+
+    price = data.get("price_aud")
+    try:
+        price = float(price)
+    except (TypeError, ValueError):
+        return None
+    if price <= 0:
+        return None
+
+    config = RETAILERS[retailer_key]
+    return {
+        "retailer": retailer_key,
+        "retailer_name": config["name"],
+        "set_number": number,
+        "name": name or f"LEGO set {number}",
+        "price_aud": round(price, 2),
+        "product_url": data.get("url") or url,
+        "rrp_aud": None,
+        "discount_percent": None,
+        "rrp_url": None,
+        "rrp_source": None,
+        "verified": False,
+        "stock_status": data.get("stock_status", "unknown"),
+    }
+
+
+def write_json(path: Path, payload):
+    """Write API JSON deterministically and create the destination folder."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\\n",
+        encoding="utf-8",
+    )
+
+
+def load_json(path: Path, default):
+    """Load an existing JSON file, returning a safe default if unavailable."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return default
+
+
 def main():
     now = datetime.now(ZoneInfo("Australia/Sydney"))
     if "--force" not in sys.argv and now.hour != 8:
