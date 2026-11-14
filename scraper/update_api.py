@@ -302,6 +302,8 @@ def main():
             number = futures[future]
             try:
                 rrp_cache[number] = future.result()
+                if rrp_cache[number] is None:
+                    errors.append(f"LEGO AU RRP could not be verified for set {number}.")
             except Exception as exc:
                 rrp_cache[number] = None
                 errors.append(f"LEGO AU lookup failed for set {number}: {type(exc).__name__}")
