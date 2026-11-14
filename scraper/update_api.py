@@ -327,11 +327,26 @@ def main():
                 retailer_coverage[key]["qualifying_deals"] += 1
 
     for key, coverage in retailer_coverage.items():
+        # Explicitly flag a retailer when discovery or product-page price extraction
+        # returns no usable data, so API consumers can detect a silent feed failure.
+        coverage["no_data"] = (
+            coverage["product_urls_discovered"] == 0
+            or coverage["products_with_prices_checked"] == 0
+        )
         coverage["status"] = (
-            "complete" if discovered[key] and coverage["products_with_prices_checked"] > 0
-            and not coverage["errors"] else "incomplete"
+            "complete" if not coverage["no_data"] and not coverage["errors"]
+            else "incomplete"
         )
         coverage["errors"] = coverage["errors"][:20]
+
+    stores_with_no_data = [
+        {"retailer": key, "name": value["name"], "reason": (
+            "No product URLs discovered" if value["product_urls_discovered"] == 0
+            else "No product prices could be read" if value["products_with_prices_checked"] == 0
+            else "Retailer returned no usable data"
+        )}
+        for key, value in retailer_coverage.items() if value["no_data"]
+    ]
 
     # A run is complete only if every retailer completed discovery and product checks.
     coverage_complete = all(x["status"] == "complete" for x in retailer_coverage.values()) and not errors
@@ -343,6 +358,7 @@ def main():
         "complete": coverage_complete,
         "status": status,
         "retailers": retailer_coverage,
+        "stores_with_no_data": stores_with_no_data,
         "product_count": len(all_products),
         "verified_product_count": sum(1 for p in all_products if p["verified"]),
         "errors": errors[:100],
@@ -350,11 +366,11 @@ def main():
     write_json(API / "lego-deals.json", {
         "generated_at": generated, "currency": "AUD",
         "discount_threshold_percent": THRESHOLD,
-        "coverage": coverage, "deals": deals,
+        "coverage": coverage, "stores_with_no_data": stores_with_no_data, "deals": deals,
     })
     write_json(API / "all-products.json", {
         "generated_at": generated, "currency": "AUD",
-        "coverage": coverage, "products": all_products,
+        "coverage": coverage, "stores_with_no_data": stores_with_no_data, "products": all_products,
     })
     write_json(API / "last-updated.json", {
         "status": status, "generated_at": generated,
@@ -362,6 +378,7 @@ def main():
         "verified_products": coverage["verified_product_count"],
         "qualifying_deals": len(deals),
         "retailers": retailer_coverage,
+        "stores_with_no_data": stores_with_no_data,
         "message": "Only independently verified retailer prices and matching Australian LEGO RRPs qualify as deals.",
         "errors": errors[:100],
     })
