@@ -46,6 +46,9 @@ RETAILERS = {
         "host": "bigw.com.au",
         "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
         "product_path": ("/product/",),
+        # BIG W exposes a large first batch and a separate "Load more" control;
+        # avoid guessing unsupported ?page=N URLs which can trigger slow requests.
+        "max_pages": 1,
     },
     "target": {
         "name": "Target",
@@ -144,6 +147,8 @@ def jsonld_objects(soup: BeautifulSoup):
 
 def extract_product_data(url: str):
     soup = BeautifulSoup(get(url), "html.parser")
+
+    # Prefer structured Product data when the retailer provides it.
     for item in jsonld_objects(soup):
         typ = item.get("@type", [])
         types = typ if isinstance(typ, list) else [typ]
@@ -160,7 +165,7 @@ def extract_product_data(url: str):
             continue
         try:
             amount = float(str(price).replace(",", "").replace("$", ""))
-        except ValueError:
+        except (TypeError, ValueError):
             continue
         return {
             "name": item.get("name") or "",
@@ -169,6 +174,52 @@ def extract_product_data(url: str):
             "price_aud": amount,
             "currency": currency,
         }
+
+    # BIG W product pages may omit Product JSON-LD. Fall back to standard
+    # product/SEO metadata rather than silently dropping every such listing.
+    def meta_value(*selectors):
+        for selector in selectors:
+            tag = soup.select_one(selector)
+            if tag:
+                value = tag.get("content") or tag.get("value") or tag.get_text(" ", strip=True)
+                if value:
+                    return str(value).strip()
+        return ""
+
+    name = meta_value(
+        'meta[property="og:title"]',
+        'meta[name="twitter:title"]',
+        'meta[itemprop="name"]',
+    )
+    raw_price = meta_value(
+        'meta[property="product:price:amount"]',
+        'meta[property="og:price:amount"]',
+        'meta[itemprop="price"]',
+        'meta[name="price"]',
+    )
+    currency = meta_value(
+        'meta[property="product:price:currency"]',
+        'meta[property="og:price:currency"]',
+        'meta[itemprop="priceCurrency"]',
+    ) or "AUD"
+
+    if raw_price and currency.upper() == "AUD":
+        match = re.search(r"\\d+(?:[.,]\\d{1,2})?", raw_price.replace(",", ""))
+        if match:
+            try:
+                amount = float(match.group(0))
+                if amount > 0:
+                    sku = url.rstrip("/").split("/")[-1]
+                    return {
+                        "name": name,
+                        "url": url,
+                        "sku": sku,
+                        "price_aud": amount,
+                        "currency": "AUD",
+                    }
+            except ValueError:
+                pass
+
     return None
 
 
@@ -176,7 +227,8 @@ def discover_product_urls(retailer_key: str):
     config = RETAILERS[retailer_key]
     base = config["category"]
     urls, seen_pages, errors = [], set(), []
-    for page in range(1, MAX_PAGES + 1):
+    page_limit = min(MAX_PAGES, config.get("max_pages", MAX_PAGES))
+    for page in range(1, page_limit + 1):
         page_url = config["page_url"](base, page)
         try:
             soup = BeautifulSoup(get(page_url), "html.parser")
