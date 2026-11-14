@@ -469,43 +469,6 @@ def main():
         }
 
     for product in all_products:
-        if product["retailer"] == "legoau" and product["set_number"]:
-            rrp_cache[product["set_number"]] = {
-                "price_aud": product["price_aud"],
-                "url": product["product_url"],
-                "name": product["name"],
-                "sku": product["set_number"],
-                "source": "LEGO Australia product page",
-            }
-
-    numbers = {
-        p["set_number"] for p in all_products
-        if p["set_number"] and p["set_number"] not in rrp_cache
-    }
-    tracker_cache = lego_tracker_rrp_map(numbers)
-    rrp_cache.update(tracker_cache)
-
-    # Only use direct LEGO search as a final fallback for set numbers the tracker
-    # does not cover; failures are recorded without invalidating other products.
-    remaining = sorted(numbers - set(rrp_cache))
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        futures = {pool.submit(lego_official_rrp, number): number for number in remaining}
-        for future in as_completed(futures):
-            number = futures[future]
-            try:
-                result = future.result()
-                if result:
-                    result["source"] = "LEGO Australia product page"
-                rrp_cache[number] = result
-                if result is None:
-                    errors.append(f"LEGO AU RRP could not be verified for set {number}.")
-            except Exception as exc:
-                rrp_cache[number] = None
-                errors.append(
-                    f"LEGO AU lookup failed for set {number}: {format_error(exc)}"
-                )
-
-    for product in all_products:
         number = product["set_number"]
         lego = rrp_cache.get(number) if number else None
         if lego:
@@ -520,8 +483,7 @@ def main():
             })
             key = product["retailer"]
             retailer_coverage[key]["verified_products"] += 1
-            # Bricks Megastore provides the reference price; it is not a deal
-            # against itself because its own discount is always zero.
+            # Bricks Megastore is the reference source and is excluded from deal alerts.
             if key != "bricksmegastore" and discount is not None and discount >= THRESHOLD:
                 deals.append(product)
                 retailer_coverage[key]["qualifying_deals"] += 1
