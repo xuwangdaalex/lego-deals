@@ -12,7 +12,7 @@ permissions:
   pages: write
   id-token: write
 
-# Prevent overlapping runs from generating and pushing API updates at the same time.
+# Prevent overlapping runs of this workflow from competing to update the API.
 concurrency:
   group: lego-deals-api
   cancel-in-progress: false
@@ -46,19 +46,42 @@ jobs:
           else
             python scraper/update_api.py
           fi
-      - name: Commit updated API files
+      - name: Commit and push updated API files
+        shell: bash
         run: |
-          if [[ -n "$(git status --porcelain api)" ]]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add api/
-            git commit -m "Update LEGO deals API"
-            # Rebase the generated-data commit onto any changes pushed while the scraper ran.
-            git pull --rebase origin main
-            git push origin HEAD:main
-          else
+          if [[ -z "$(git status --porcelain api)" ]]; then
             echo "API files are unchanged."
+            exit 0
           fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add api/
+          git commit -m "Update LEGO deals API"
+
+          # Another process may update main between fetch and push.
+          # Retry by rebasing this generated-data commit onto the newest main.
+          for attempt in 1 2 3 4 5; do
+            echo "Push attempt $attempt of 5"
+            git fetch origin main
+
+            if ! git rebase origin/main; then
+              echo "::error::Could not rebase the API update onto origin/main. A conflict needs manual review."
+              git rebase --abort || true
+              exit 1
+            fi
+
+            if git push origin HEAD:main; then
+              echo "API update pushed successfully."
+              exit 0
+            fi
+
+            echo "Push rejected; retrying after fetching the latest main."
+            sleep 2
+          done
+
+          echo "::error::Could not push after 5 attempts. Check whether main is being updated by another workflow or protected by a branch rule."
+          exit 1
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload API site
