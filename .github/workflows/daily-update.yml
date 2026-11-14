@@ -3,7 +3,8 @@ name: Update LEGO deals API
 on:
   workflow_dispatch:
   schedule:
-    # 08:00 AEST / 09:00 AEDT. GitHub Actions cron is UTC.
+    # Run at both UTC hours; scraper proceeds only when Sydney local time is 08:00.
+    - cron: "0 21 * * *"
     - cron: "0 22 * * *"
 
 permissions:
