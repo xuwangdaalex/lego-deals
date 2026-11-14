@@ -20,7 +20,7 @@ Raw GitHub file URLs are also available for a public repository, for example:
 
 The threshold is inclusive (20% or more). The scraper only marks a product as verified when it can read Myer product pricing and a matching set number's Australian RRP from LEGO's official product data. Myer's crossed-out or previous price is not used as RRP.
 
-Scraping is best-effort and site markup/sitemaps can change. The API reports coverage as `complete` or `incomplete`; an incomplete run must not be interpreted as proof that no deals exist. Products with unverified RRP are not included in the deals feed.
+Product discovery uses Myer's paginated public LEGO catalogue rather than depending on its unavailable sitemap endpoint. Scraping is best-effort and site markup can change. The API reports coverage as `complete` or `incomplete`; an incomplete run must not be interpreted as proof that no deals exist. Products with unverified RRP are not included in the deals feed.
 
 ## Daily automation
 
