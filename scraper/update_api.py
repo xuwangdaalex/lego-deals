@@ -248,7 +248,7 @@ def parse_product_html(html: str, url: str):
     ) or "AUD"
 
     if raw_price and currency.upper() == "AUD":
-        match = re.search(r"\\d+(?:[.,]\\d{1,2})?", raw_price.replace(",", ""))
+        match = re.search(r"\d+(?:[.,]\d{1,2})?", raw_price.replace(",", ""))
         if match:
             amount = float(match.group(0))
             if amount > 0:
