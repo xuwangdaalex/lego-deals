@@ -1,48 +1,17 @@
 {
-  "generated_at": "2026-11-14T13:30:43.959386+00:00",
+  "generated_at": "2026-11-14T22:07:30.046041+00:00",
   "currency": "AUD",
   "discount_threshold_percent": 20.0,
   "coverage": {
     "complete": false,
     "status": "incomplete",
     "retailers": {
-      "legoau": {
-        "name": "LEGO AU (Official)",
-        "product_urls_discovered": 25,
-        "products_with_prices_checked": 0,
-        "verified_products": 0,
-        "qualifying_deals": 0,
-        "status": "incomplete",
-        "errors": [
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/dragon-ball-shenron-goku-11390)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/batman-returns-batmobile-76355)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/downton-abbey-21373)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/executor-super-star-destroyer-75457)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/spongebob-squarepants-bikini-bottom-11386)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/captain-jack-sparrows-pirate-ship-10365)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/gustav-klimt-the-kiss-31221)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/holiday-house-11387)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/The-Lord-of-the-Rings-Minas-Tirith-11377)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/sagrada-familia-21065)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/40908)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/40768)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/30720)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/playstation-72306)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/the-lord-of-the-rings-rivendell-10316)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/the-x-files-21369)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/star-trek-u-s-s-enterprise-ncc-1701-d-10356)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/claude-monet-bridge-over-a-pond-of-water-lilies-31220)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/death-star-75419)",
-          "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/shopping-street-11371)"
-        ],
-        "no_data": true
-      },
       "myer": {
         "name": "Myer",
-        "product_urls_discovered": 402,
-        "products_with_prices_checked": 402,
-        "verified_products": 392,
-        "qualifying_deals": 17,
+        "product_urls_discovered": 393,
+        "products_with_prices_checked": 393,
+        "verified_products": 218,
+        "qualifying_deals": 10,
         "status": "complete",
         "errors": [],
         "no_data": false
@@ -55,16 +24,17 @@
         "qualifying_deals": 0,
         "status": "incomplete",
         "errors": [
+          "BIG W data API failed: HTTP 401",
           "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)"
         ],
         "no_data": true
       },
       "target": {
         "name": "Target",
-        "product_urls_discovered": 491,
-        "products_with_prices_checked": 491,
-        "verified_products": 470,
-        "qualifying_deals": 21,
+        "product_urls_discovered": 493,
+        "products_with_prices_checked": 490,
+        "verified_products": 245,
+        "qualifying_deals": 8,
         "status": "complete",
         "errors": [],
         "no_data": false
@@ -84,8 +54,8 @@
       "bricksmegastore": {
         "name": "Bricks Megastore",
         "product_urls_discovered": 463,
-        "products_with_prices_checked": 317,
-        "verified_products": 298,
+        "products_with_prices_checked": 374,
+        "verified_products": 374,
         "qualifying_deals": 0,
         "status": "complete",
         "errors": [],
@@ -118,11 +88,6 @@
     },
     "stores_with_no_data": [
       {
-        "retailer": "legoau",
-        "name": "LEGO AU (Official)",
-        "reason": "No product prices could be read"
-      },
-      {
         "retailer": "bigw",
         "name": "BIG W",
         "reason": "No product URLs discovered"
@@ -143,77 +108,17 @@
         "reason": "No product URLs discovered"
       }
     ],
-    "product_count": 1210,
-    "verified_product_count": 1160,
+    "product_count": 1257,
+    "verified_product_count": 837,
     "errors": [
+      "BIG W data API failed: HTTP 401",
       "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)",
       "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
       "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego).",
-      "EB Games catalogue page 1: HTTP 403 (https://www.ebgames.com.au/featured/lego)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/dragon-ball-shenron-goku-11390)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/batman-returns-batmobile-76355)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/downton-abbey-21373)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/executor-super-star-destroyer-75457)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/spongebob-squarepants-bikini-bottom-11386)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/captain-jack-sparrows-pirate-ship-10365)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/gustav-klimt-the-kiss-31221)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/holiday-house-11387)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/The-Lord-of-the-Rings-Minas-Tirith-11377)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/sagrada-familia-21065)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/40908)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/40768)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/30720)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/playstation-72306)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/the-lord-of-the-rings-rivendell-10316)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/the-x-files-21369)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/star-trek-u-s-s-enterprise-ncc-1701-d-10356)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/claude-monet-bridge-over-a-pond-of-water-lilies-31220)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/death-star-75419)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/shopping-street-11371)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/the-milky-way-galaxy-31212)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/the-ministry-of-magic-collectors-edition-76476)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/arkham-asylum-76300)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/eiffel-tower-10307)",
-      "LEGO AU (Official) product fetch failed: HTTP 403 (https://www.lego.com/en-au/product/star-trek-uss-enterprise-ncc-1701-bridge-11385)",
-      "LEGO AU lookup failed for set 1000: HTTP 403",
-      "LEGO AU lookup failed for set 1966: HTTP 403",
-      "LEGO AU lookup failed for set 1701: HTTP 403",
-      "LEGO AU lookup failed for set 1470: HTTP 403",
-      "LEGO AU lookup failed for set 2004: HTTP 403",
-      "LEGO AU lookup failed for set 2026: HTTP 403",
-      "LEGO AU lookup failed for set 30712: HTTP 403",
-      "LEGO AU lookup failed for set 2099: HTTP 403",
-      "LEGO AU lookup failed for set 30715: HTTP 403",
-      "LEGO AU lookup failed for set 30714: HTTP 403",
-      "LEGO AU lookup failed for set 30719: HTTP 403",
-      "LEGO AU lookup failed for set 30716: HTTP 403",
-      "LEGO AU lookup failed for set 43243: HTTP 403",
-      "LEGO AU lookup failed for set 51305: HTTP 403",
-      "LEGO AU lookup failed for set 5023: HTTP 403",
-      "LEGO AU lookup failed for set 60430: HTTP 403",
-      "LEGO AU lookup failed for set 71050: HTTP 403",
-      "LEGO AU lookup failed for set 71051: HTTP 403",
-      "LEGO AU lookup failed for set 71052: HTTP 403",
-      "LEGO AU lookup failed for set 71820: HTTP 403",
-      "LEGO AU lookup failed for set 71844: HTTP 403",
-      "LEGO AU lookup failed for set 72039: HTTP 403",
-      "LEGO AU lookup failed for set 76448: HTTP 403",
-      "LEGO AU lookup failed for set 76967: HTTP 403",
-      "LEGO AU lookup failed for set 76970: HTTP 403",
-      "LEGO AU lookup failed for set 77057: HTTP 403",
-      "LEGO AU lookup failed for set 854313: HTTP 403",
-      "LEGO AU lookup failed for set 854312: HTTP 403",
-      "LEGO AU lookup failed for set 854337: HTTP 403",
-      "LEGO AU lookup failed for set 854332: HTTP 403",
-      "LEGO AU lookup failed for set 854338: HTTP 403"
+      "EB Games catalogue page 1: HTTP 403 (https://www.ebgames.com.au/featured/lego)"
     ]
   },
   "stores_with_no_data": [
-    {
-      "retailer": "legoau",
-      "name": "LEGO AU (Official)",
-      "reason": "No product prices could be read"
-    },
     {
       "retailer": "bigw",
       "name": "BIG W",
@@ -245,10 +150,10 @@
       "product_url": "https://www.target.com.au/p/lego-classic-grey-baseplate-11-24/66054160",
       "rrp_aud": 22.99,
       "discount_percent": 34.75,
+      "rrp_url": "/products/lego-classic-gray-baseplate",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/11024-1/gray-baseplate",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -259,24 +164,10 @@
       "product_url": "https://www.myer.com.au/p/lego-city-vintage-steam-train-60511",
       "rrp_aud": 149.99,
       "discount_percent": 33.34,
+      "rrp_url": "/products/lego-city-vintage-steam-train",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/60511-1/vintage-steam-train",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "80118",
-      "name": "Chinese Festivals Fortune Firecracker 80118",
-      "price_aud": 89.99,
-      "product_url": "https://www.myer.com.au/p/lego-chinese-festivals-fortune-firecracker-80118",
-      "rrp_aud": 129.99,
-      "discount_percent": 30.77,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/80118-1/fortune-firecracker",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "target",
@@ -287,10 +178,10 @@
       "product_url": "https://www.target.com.au/p/lego-ninjago-lloyd-s-pull-back-race-car-71828/70792379",
       "rrp_aud": 34.99,
       "discount_percent": 28.55,
+      "rrp_url": "/products/lego-ninjago-lloyd-s-pull-back-race-car",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/71828-1/lloyd-s-pull-back-race-car",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -301,10 +192,10 @@
       "product_url": "https://www.myer.com.au/p/lego-heartlake-city-grand-hotel-friends-building-set-42704",
       "rrp_aud": 249.99,
       "discount_percent": 28.0,
+      "rrp_url": "/products/lego%C2%AE-friends-heartlake-city-grand-hotel",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/42704-1/heartlake-city-grand-hotel",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -315,24 +206,10 @@
       "product_url": "https://www.myer.com.au/p/lego-city-dump-truck---front-end-loader-60494",
       "rrp_aud": 199.99,
       "discount_percent": 27.5,
+      "rrp_url": "/products/lego-city-dump-truck-front-end-loader",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/60494-1/dump-truck-front-end-loader",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "31166",
-      "name": "LEGO® Creator 3in1 Beautiful Horse 31166",
-      "price_aud": 59.0,
-      "product_url": "https://www.target.com.au/p/lego-creator-3in1-beautiful-horse-31166/71638270",
-      "rrp_aud": 79.99,
-      "discount_percent": 26.24,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/31166-1/beautiful-horse",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -343,94 +220,10 @@
       "product_url": "https://www.myer.com.au/p/lego-star-wars-tm-grogu--mandalorian-apprentice--75446",
       "rrp_aud": 229.99,
       "discount_percent": 26.09,
+      "rrp_url": "/products/lego-star-wars-grogu-mandalorian-apprentice",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/75446-1/grogu-mandalorian-apprentice",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "40524",
-      "name": "LEGO® Botanicals Sunflowers 40524",
-      "price_aud": 17.0,
-      "product_url": "https://www.target.com.au/p/lego-botanicals-sunflowers-4-524/69302565",
-      "rrp_aud": 22.99,
-      "discount_percent": 26.05,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/40524-1/sunflowers",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "40725",
-      "name": "LEGO® Botanicals Cherry Blossoms 40725",
-      "price_aud": 17.0,
-      "product_url": "https://www.target.com.au/p/lego-botanicals-cherry-blossoms-4-725/69302589",
-      "rrp_aud": 22.99,
-      "discount_percent": 26.05,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/40725-1/cherry-blossoms",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "40460",
-      "name": "LEGO® Botanicals Roses 40460",
-      "price_aud": 17.0,
-      "product_url": "https://www.target.com.au/p/lego-botanicals-roses-4-46/69302558",
-      "rrp_aud": 22.99,
-      "discount_percent": 26.05,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/40460-1/roses",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "76466",
-      "name": "Harry Potter Philosopher's Stone Collectors' Edition 76466",
-      "price_aud": 184.99,
-      "product_url": "https://www.myer.com.au/p/lego-harry-potter-philosophers-stone-collectors-edition-76466",
-      "rrp_aud": 249.99,
-      "discount_percent": 26.0,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/76466-1/sorcerer-s-stone-collectors-edition",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "42648",
-      "name": "LEGO® Friends Panda Sanctuary Animal Care 42648",
-      "price_aud": 37.0,
-      "product_url": "https://www.target.com.au/p/lego-friends-panda-sanctuary-animal-care-42648/71498997",
-      "rrp_aud": 49.99,
-      "discount_percent": 25.99,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/42648-1/panda-sanctuary-animal-care",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "42649",
-      "name": "LEGO® Friends Heartlake City Sweet Shop 42649",
-      "price_aud": 37.0,
-      "product_url": "https://www.target.com.au/p/lego-friends-heartlake-city-sweet-shop-42649/70763065",
-      "rrp_aud": 49.99,
-      "discount_percent": 25.99,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/42649-1/heartlake-city-candy-store",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -441,10 +234,10 @@
       "product_url": "https://www.myer.com.au/p/lego-disney-classic-angel-43257",
       "rrp_aud": 119.99,
       "discount_percent": 25.84,
+      "rrp_url": "/products/lego-disney-angel",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/43257-1/angel",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -455,66 +248,10 @@
       "product_url": "https://www.myer.com.au/p/lego-architecture-tower-bridge-21067",
       "rrp_aud": 499.99,
       "discount_percent": 25.0,
+      "rrp_url": "/products/lego-architecture-tower-bridge",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/21067-1/tower-bridge",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "31165",
-      "name": "LEGO® Creator 3in1 Wild Animals: Panda Family 31165",
-      "price_aud": 45.0,
-      "product_url": "https://www.target.com.au/p/lego-creator-3in1-wild-animals-panda-family-31165/70712988",
-      "rrp_aud": 59.99,
-      "discount_percent": 24.99,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/31165-1/wild-animals-panda-family",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "10421",
-      "name": "LEGO® DUPLO® Town Alphabet Truck 10421",
-      "price_aud": 45.0,
-      "product_url": "https://www.target.com.au/p/lego-duplo-town-alphabet-truck-1-421/69301513",
-      "rrp_aud": 59.99,
-      "discount_percent": 24.99,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/10421-1/alphabet-truck",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "10426",
-      "name": "LEGO® DUPLO Town Train Bridge and Tracks Expansion Set 10426",
-      "price_aud": 45.0,
-      "product_url": "https://www.target.com.au/p/lego-duplo-town-train-bridge-and-tracks-expansion-set-1-426/69834639",
-      "rrp_aud": 59.99,
-      "discount_percent": 24.99,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/10426-1/train-bridge-and-tracks-expansion-set",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "31140",
-      "name": "LEGO® Creator Magical Unicorn 31140",
-      "price_aud": 12.0,
-      "product_url": "https://www.target.com.au/p/lego-creator-magical-unicorn-3114/67867493",
-      "rrp_aud": 15.99,
-      "discount_percent": 24.95,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/31140-1/magical-unicorn",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "target",
@@ -525,24 +262,10 @@
       "product_url": "https://www.target.com.au/p/lego-editions-football-lionel-messi-celebration-43-18/72991701",
       "rrp_aud": 299.99,
       "discount_percent": 23.66,
+      "rrp_url": "/products/lego-editions-lionel-messi-celebration",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/43018-1/lionel-messi-celebration",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "31220",
-      "name": "Art Claude Monet Bridge Over A Pond Of Water Lilies 31220",
-      "price_aud": 229.99,
-      "product_url": "https://www.myer.com.au/p/lego-art-claude-monet-–-bridge-over-a-pond-of-water-lilies-31220",
-      "rrp_aud": 299.99,
-      "discount_percent": 23.33,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/31220-1/claude-monet-bridge-over-a-pond-of-water-lilies",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -553,66 +276,10 @@
       "product_url": "https://www.myer.com.au/p/lego-friends-fun-indoor-playground-42686",
       "rrp_aud": 89.99,
       "discount_percent": 23.32,
+      "rrp_url": "/products/lego-friends-fun-indoor-playground",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/42686-1/fun-indoor-playground",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "42666",
-      "name": "LEGO® Friends Cat Birthday Party & Tree House 42666",
-      "price_aud": 39.0,
-      "product_url": "https://www.target.com.au/p/lego-friends-cat-birthday-party-tree-house-42666/71499000",
-      "rrp_aud": 49.99,
-      "discount_percent": 21.98,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/42666-1/cat-birthday-party-tree-house",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "10366",
-      "name": "Icons Tropical Aquarium 10366",
-      "price_aud": 549.99,
-      "product_url": "https://www.myer.com.au/p/lego-icons-tropical-aquarium-10366",
-      "rrp_aud": 699.99,
-      "discount_percent": 21.43,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/10366-1/tropical-aquarium",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "10445",
-      "name": "LEGO® DUPLO Town F1® Team Race Cars & Drivers 10445",
-      "price_aud": 55.0,
-      "product_url": "https://www.target.com.au/p/lego-duplo-town-f1-team-race-cars-drivers-1-445/70715514",
-      "rrp_aud": 69.99,
-      "discount_percent": 21.42,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/10445-1/f1-team-race-cars-drivers",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "21359",
-      "name": "Ideas Italian Riviera 21359",
-      "price_aud": 354.99,
-      "product_url": "https://www.myer.com.au/p/lego-ideas-italian-riviera-21359",
-      "rrp_aud": 449.99,
-      "discount_percent": 21.11,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/21359-1/italian-riviera",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -623,38 +290,10 @@
       "product_url": "https://www.myer.com.au/p/lego-icons-douglas-dc-3-pan-am-airliner-11378",
       "rrp_aud": 379.99,
       "discount_percent": 21.05,
+      "rrp_url": "/products/lego-icons-douglas-dc-3-pan-am-airliner",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/11378-1/douglas-dc-3-pan-am-airliner",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "10351",
-      "name": "Icons Sherlock Holmes: Book Nook 10351",
-      "price_aud": 157.99,
-      "product_url": "https://www.myer.com.au/p/lego-icons-sherlock-holmes-book-nook-10351",
-      "rrp_aud": 199.99,
-      "discount_percent": 21.0,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/10351-1/sherlock-holmes-book-nook",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "75430",
-      "name": "Star Wars Tm Wicket The Ewok 75430",
-      "price_aud": 157.99,
-      "product_url": "https://www.myer.com.au/p/lego-star-wars-tm-wicket-the-ewok-75430",
-      "rrp_aud": 199.99,
-      "discount_percent": 21.0,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/75430-1/wicket-the-ewok",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -665,10 +304,10 @@
       "product_url": "https://www.myer.com.au/p/lego-blueys-family-house-11203",
       "rrp_aud": 99.99,
       "discount_percent": 20.99,
+      "rrp_url": "/products/lego-bluey-bluey-s-family-house",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/11203-1/bluey-s-family-house",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "target",
@@ -679,10 +318,10 @@
       "product_url": "https://www.target.com.au/p/lego-botanicals-pretty-pink-flower-bouquet-1-342/70734980",
       "rrp_aud": 99.99,
       "discount_percent": 20.99,
+      "rrp_url": "/products/lego-botanicals-pretty-pink-flower-bouquet",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/10342-1/pretty-pink-flower-bouquet",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "target",
@@ -693,10 +332,10 @@
       "product_url": "https://www.target.com.au/p/lego-editions-formula-1-ayrton-senna-helmet-43-24/73310686",
       "rrp_aud": 149.99,
       "discount_percent": 20.66,
+      "rrp_url": "/products/lego-editions-ayrton-senna-helmet",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/43024-1/ayrton-senna-helmet",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "target",
@@ -707,10 +346,10 @@
       "product_url": "https://www.target.com.au/p/lego-editions-mclaren-mastercard-f1-team-lando-norris-helmet-43-23/72480922",
       "rrp_aud": 149.99,
       "discount_percent": 20.66,
+      "rrp_url": "/products/lego-editions-mclaren-mastercard-f1-team-lando-norris-helmet",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/43023-1/mclaren-mastercard-f1-team-lando-norris-helmet",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "target",
@@ -721,10 +360,10 @@
       "product_url": "https://www.target.com.au/p/lego-editions-formula-1-scuderia-ferrari-hp-lewis-hamilton-helmet-43-22/72481622",
       "rrp_aud": 149.99,
       "discount_percent": 20.66,
+      "rrp_url": "/products/lego-editions-scuderia-ferrari-hp-lewis-hamilton-helmet",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/43022-1/scuderia-ferrari-hp-lewis-hamilton-helmet",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "target",
@@ -735,24 +374,10 @@
       "product_url": "https://www.target.com.au/p/lego-editions-formula-1-scuderia-ferrari-hp-charles-leclerc-helmet-43-14/72481301",
       "rrp_aud": 149.99,
       "discount_percent": 20.66,
+      "rrp_url": "/products/lego-editions-scuderia-ferrari-hp-charles-leclerc-helmet",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/43014-1/scuderia-ferrari-hp-charles-leclerc-helmet",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "72167",
-      "name": "LEGO® Pokemon SMART Play: Charizard vs. Jolteon Ultimate Battle 72167",
-      "price_aud": 159.0,
-      "product_url": "https://www.target.com.au/p/lego-pokemon-smart-play-charizard-vs-jolteon-ultimate-battle-72167/73174110",
-      "rrp_aud": 199.99,
-      "discount_percent": 20.5,
-      "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/72167-1/charizard-vs-jolteon-ultimate-battle",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     },
     {
       "retailer": "myer",
@@ -763,10 +388,10 @@
       "product_url": "https://www.myer.com.au/p/lego-icons-shopping-street-11371",
       "rrp_aud": 399.99,
       "discount_percent": 20.0,
+      "rrp_url": "/products/lego-icons-shopping-street",
+      "rrp_source": "Bricks Megastore listing price",
       "verified": true,
-      "stock_status": "unknown",
-      "lego_url": "https://legopricetracker.co.nz/au/sets/11371-1/shopping-street",
-      "rrp_source": "LEGO Price Tracker (listed as LEGO Australia price)"
+      "stock_status": "unknown"
     }
   ]
 }
