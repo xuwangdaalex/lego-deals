@@ -1,0 +1,10 @@
+{
+  "generated_at": null,
+  "currency": "AUD",
+  "discount_threshold_percent": 20,
+  "coverage": {
+    "complete": false,
+    "status": "not_run"
+  },
+  "deals": []
+}
