@@ -23,7 +23,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Refresh JSON API
-        run: python scraper/update_api.py
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            python scraper/update_api.py --force
+          else
+            python scraper/update_api.py
+          fi
       - name: Commit updated API files
         run: |
           if [[ -n "$(git status --porcelain api)" ]]; then
