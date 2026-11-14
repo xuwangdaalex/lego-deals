@@ -264,6 +264,8 @@ def parse_product_html(html: str, url: str):
 
 
 def extract_product_data(url: str, retailer_key: str | None = None):
+    if retailer_key == "bigw" and url in _BIGW_PRODUCT_CACHE:
+        return _BIGW_PRODUCT_CACHE[url]
     html = get(url)
     data = parse_product_html(html, url)
     # David Jones and LEGO AU pages may return a JS shell to requests even when
@@ -273,7 +275,69 @@ def extract_product_data(url: str, retailer_key: str | None = None):
     return data
 
 
+# BIG W's public catalogue HTML is intermittently blocked in GitHub Actions.
+# This independently operated scraper API exposes the same public category data.
+_BIGW_PRODUCT_CACHE = {}
+
+def discover_bigw_via_api():
+    """Fetch BIG W LEGO listings through a documented third-party data endpoint."""
+    products = []
+    base = "https://big-w-scraper.omkar.cloud/big-w/categories/products"
+    for page in range(1, 50):
+        endpoint = f"{base}?category=6822101&page={page}&limit=100&state=NSW"
+        payload = json.loads(get(endpoint))
+        results = payload.get("results") or []
+        if not results:
+            break
+        for item in results:
+            if str(item.get("brand", "")).strip().lower() != "lego":
+                continue
+            # Keep products sold by BIG W itself; exclude marketplace sellers.
+            if str(item.get("sold_by", "")).strip().lower() != "big w":
+                continue
+            pricing = item.get("pricing") or {}
+            amount = pricing.get("amount")
+            try:
+                amount = float(amount)
+            except (TypeError, ValueError):
+                continue
+            if amount <= 0:
+                continue
+            product_url = item.get("link")
+            if not product_url:
+                continue
+            product_url = product_url.split("?")[0]
+            name = str(item.get("name") or "").strip()
+            sku = str(item.get("id") or "")
+            _BIGW_PRODUCT_CACHE[product_url] = {
+                "name": name,
+                "url": product_url,
+                "sku": sku,
+                "price_aud": amount,
+                "currency": str((pricing.get("currency") or "AUD")).upper(),
+                "stock_status": "in_stock" if item.get("is_in_stock") else "out_of_stock",
+                "data_source": "BIG W listing via Omkar BIG W Scraper API",
+            }
+            products.append(product_url)
+        total_pages = int(payload.get("total_pages") or page)
+        if page >= total_pages:
+            break
+        time.sleep(0.15)
+    return list(dict.fromkeys(products))
+
+
 def discover_product_urls(retailer_key: str):
+    if retailer_key == "bigw":
+        try:
+            api_urls = discover_bigw_via_api()
+            if api_urls:
+                print(f"BIG W API returned {len(api_urls)} LEGO listings.")
+                return api_urls[:MAX_PRODUCTS_PER_RETAILER], []
+            return [], ["BIG W data API returned no LEGO listings."]
+        except Exception as exc:
+            api_error = f"BIG W data API failed: {format_error(exc)}"
+            print(api_error)
+            # Fall back to the retailer's own category page if the API is unavailable.
     config = RETAILERS[retailer_key]
     base = config["category"]
     urls, seen_pages, errors = [], set(), []
