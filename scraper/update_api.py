@@ -375,7 +375,7 @@ def lego_tracker_rrp_map(numbers: set[str]):
 
         for anchor in soup.select('a[href*="/au/sets/"]'):
             href = urljoin(page_url, anchor.get("href", ""))
-            match = re.search(r"/au/sets/(\\d{4,6})-\\d+/", urlparse(href).path)
+            match = re.search(r"/au/sets/(\d{4,6})-\d+/", urlparse(href).path)
             if not match:
                 continue
             number = match.group(1)
@@ -389,7 +389,7 @@ def lego_tracker_rrp_map(numbers: set[str]):
                     break
                 if "LEGO Australia" not in card_text:
                     continue
-                price_match = re.search(r"\\$\\s*([\\d,]+\\.\\d{2})", card_text)
+                price_match = re.search(r"\$\s*([\d,]+\.\d{2})", card_text)
                 if not price_match:
                     continue
                 amount = float(price_match.group(1).replace(",", ""))
