@@ -449,7 +449,7 @@ def write_json(path: Path, payload):
     """Write API JSON deterministically and create the destination folder."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\\n",
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
