@@ -33,6 +33,16 @@ HEADERS = {
 }
 
 RETAILERS = {
+    "legoau": {
+        "name": "LEGO AU (Official)",
+        "category": "https://www.lego.com/en-au/categories/all-sets",
+        "host": "lego.com",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "product_path": ("/product/",),
+        # Start with the first server-rendered catalogue batch. The category uses
+        # a Load More interface; pagination is validated before expanding it.
+        "max_pages": 1,
+    },
     "myer": {
         "name": "Myer",
         "category": "https://www.myer.com.au/c/all-toys/brand-lego",
@@ -369,9 +379,23 @@ def main():
                 retailer_coverage[key]["errors"].append(msg)
                 errors.append(msg)
 
-    # Resolve each LEGO set RRP once, then apply it to every retailer listing.
-    numbers = sorted({p["set_number"] for p in all_products if p["set_number"]})
+    # Build the Australian official RRP map from LEGO AU catalogue prices first.
+    # This avoids a separate search request for every set already in the catalogue.
     rrp_cache = {}
+    for product in all_products:
+        if product["retailer"] == "legoau" and product["set_number"]:
+            rrp_cache[product["set_number"]] = {
+                "price_aud": product["price_aud"],
+                "url": product["product_url"],
+                "name": product["name"],
+                "sku": product["set_number"],
+            }
+
+    # Fall back to LEGO AU's set search for retailer sets not in the catalogue batch.
+    numbers = sorted({
+        p["set_number"] for p in all_products
+        if p["set_number"] and p["set_number"] not in rrp_cache
+    })
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {pool.submit(lego_official_rrp, number): number for number in numbers}
         for future in as_completed(futures):
@@ -398,7 +422,9 @@ def main():
             })
             key = product["retailer"]
             retailer_coverage[key]["verified_products"] += 1
-            if discount is not None and discount >= THRESHOLD:
+            # LEGO AU is the official price reference, so its own listings are
+            # included in all-products but excluded from retailer deal alerts.
+            if key != "legoau" and discount is not None and discount >= THRESHOLD:
                 deals.append(product)
                 retailer_coverage[key]["qualifying_deals"] += 1
 
