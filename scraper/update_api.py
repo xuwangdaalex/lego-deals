@@ -258,9 +258,9 @@ def extract_product_data(url: str, retailer_key: str | None = None):
         return _BIGW_PRODUCT_CACHE[url]
     html = get(url)
     data = parse_product_html(html, url)
-    # David Jones and LEGO AU pages may return a JS shell to requests even when
-    # the public page itself is available. Render those product pages normally.
-    if data is None and retailer_key in {"davidjones", "legoau"} and sync_playwright is not None:
+    # David Jones may return a JS shell to requests even when the public page
+    # itself is available. Render that product page normally.
+    if data is None and retailer_key == "davidjones" and sync_playwright is not None:
         data = parse_product_html(browser_get(url), url)
     return data
 
