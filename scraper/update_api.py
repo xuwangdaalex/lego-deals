@@ -352,6 +352,71 @@ def set_number(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+def lego_tracker_rrp_map(numbers: set[str]):
+    """Read LEGO Australia's own listed prices from an independent price tracker.
+
+    The tracker identifies these as prices at LEGO Australia. This is a fallback
+    source, not a claim that the tracker is operated by LEGO.
+    """
+    wanted = set(numbers)
+    found = {}
+    page_url = "https://legopricetracker.co.nz/au/retailers/lego-australia"
+    seen_pages = set()
+
+    for _ in range(50):
+        if not page_url or page_url in seen_pages or len(found) >= len(wanted):
+            break
+        seen_pages.add(page_url)
+        try:
+            soup = BeautifulSoup(get(page_url), "html.parser")
+        except Exception as exc:
+            print(f"LEGO price tracker page failed: {format_error(exc)} ({page_url})")
+            break
+
+        for anchor in soup.select('a[href*="/au/sets/"]'):
+            href = urljoin(page_url, anchor.get("href", ""))
+            match = re.search(r"/au/sets/(\\d{4,6})-\\d+/", urlparse(href).path)
+            if not match:
+                continue
+            number = match.group(1)
+            if number not in wanted or number in found:
+                continue
+
+            # Walk up to the smallest card containing the LEGO Australia price.
+            for parent in anchor.parents:
+                card_text = parent.get_text(" ", strip=True)
+                if len(card_text) > 1200:
+                    break
+                if "LEGO Australia" not in card_text:
+                    continue
+                price_match = re.search(r"\\$\\s*([\\d,]+\\.\\d{2})", card_text)
+                if not price_match:
+                    continue
+                amount = float(price_match.group(1).replace(",", ""))
+                if amount <= 0:
+                    continue
+                found[number] = {
+                    "price_aud": amount,
+                    "url": href.split("?")[0],
+                    "name": anchor.get_text(" ", strip=True),
+                    "sku": number,
+                    "currency": "AUD",
+                    "source": "LEGO Price Tracker (listed as LEGO Australia price)",
+                }
+                break
+
+        next_url = None
+        for anchor in soup.select("a[href]"):
+            if anchor.get_text(" ", strip=True).strip().lower() == "next":
+                next_url = urljoin(page_url, anchor.get("href", ""))
+                break
+        page_url = next_url
+        time.sleep(0.1)
+
+    print(f"LEGO price tracker matched {len(found)} of {len(wanted)} requested set numbers.")
+    return found
+
+
 def lego_official_rrp(number: str):
     """Read the Australian RRP from the matching official LEGO product page."""
     search_url = "https://www.lego.com/en-au/search?q=" + quote(number)
@@ -505,8 +570,8 @@ def main():
     with ThreadPoolExecutor(max_workers=8) as pool:
         for key, urls in discovered.items():
             for url in urls:
-                tasks.append((key, pool.submit(check_listing, key, url)))
-        for key, future in tasks:
+                tasks.append((key, url, pool.submit(check_listing, key, url)))
+        for key, product_url, future in tasks:
             try:
                 record = future.result()
                 if record:
@@ -515,13 +580,13 @@ def main():
             except Exception as exc:
                 msg = (
                     f"{RETAILERS[key]['name']} product fetch failed: "
-                    f"{format_error(exc)} ({url})"
+                    f"{format_error(exc)} ({product_url})"
                 )
                 retailer_coverage[key]["errors"].append(msg)
                 errors.append(msg)
 
-    # Build the Australian official RRP map from LEGO AU catalogue prices first.
-    # This avoids a separate search request for every set already in the catalogue.
+    # Build the RRP reference map. Prefer prices read directly from LEGO AU
+    # product pages; use the independent tracker only as a clearly labelled fallback.
     rrp_cache = {}
     for product in all_products:
         if product["retailer"] == "legoau" and product["set_number"]:
@@ -530,20 +595,29 @@ def main():
                 "url": product["product_url"],
                 "name": product["name"],
                 "sku": product["set_number"],
+                "source": "LEGO Australia product page",
             }
 
-    # Fall back to LEGO AU's set search for retailer sets not in the catalogue batch.
-    numbers = sorted({
+    numbers = {
         p["set_number"] for p in all_products
         if p["set_number"] and p["set_number"] not in rrp_cache
-    })
+    }
+    tracker_cache = lego_tracker_rrp_map(numbers)
+    rrp_cache.update(tracker_cache)
+
+    # Only use direct LEGO search as a final fallback for set numbers the tracker
+    # does not cover; failures are recorded without invalidating other products.
+    remaining = sorted(numbers - set(rrp_cache))
     with ThreadPoolExecutor(max_workers=4) as pool:
-        futures = {pool.submit(lego_official_rrp, number): number for number in numbers}
+        futures = {pool.submit(lego_official_rrp, number): number for number in remaining}
         for future in as_completed(futures):
             number = futures[future]
             try:
-                rrp_cache[number] = future.result()
-                if rrp_cache[number] is None:
+                result = future.result()
+                if result:
+                    result["source"] = "LEGO Australia product page"
+                rrp_cache[number] = result
+                if result is None:
                     errors.append(f"LEGO AU RRP could not be verified for set {number}.")
             except Exception as exc:
                 rrp_cache[number] = None
@@ -561,6 +635,7 @@ def main():
                 "rrp_aud": rrp,
                 "discount_percent": discount,
                 "lego_url": lego["url"],
+                "rrp_source": lego.get("source", "LEGO Australia product page"),
                 "verified": True,
             })
             key = product["retailer"]
