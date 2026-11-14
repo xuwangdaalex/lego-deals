@@ -204,7 +204,7 @@ def extract_product_data(url: str):
     ) or "AUD"
 
     if raw_price and currency.upper() == "AUD":
-        match = re.search(r"\\d+(?:[.,]\\d{1,2})?", raw_price.replace(",", ""))
+        match = re.search(r"\d+(?:[.,]\d{1,2})?", raw_price.replace(",", ""))
         if match:
             try:
                 amount = float(match.group(0))
