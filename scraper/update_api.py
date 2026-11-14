@@ -287,22 +287,94 @@ def set_number(text: str) -> str | None:
 
 
 def lego_official_rrp(number: str):
+    """Read the Australian RRP from the matching official LEGO product page."""
     search_url = "https://www.lego.com/en-au/search?q=" + quote(number)
     soup = BeautifulSoup(get(search_url), "html.parser")
     candidates = []
+
+    # LEGO product URLs end in the set number, e.g. /product/name-11390.
     for anchor in soup.select('a[href*="/product/"]'):
         href = urljoin("https://www.lego.com", anchor.get("href", ""))
-        if number in href:
+        path = urlparse(href).path.rstrip("/")
+        if re.search(rf"-{re.escape(number)}$", path):
             candidates.append(href.split("?")[0])
+
     for url in dict.fromkeys(candidates):
         try:
-            data = extract_product_data(url)
+            html = get(url)
+            product_soup = BeautifulSoup(html, "html.parser")
         except Exception:
             continue
-        if data and number in (data.get("url", "") + " " + data.get("sku", "") + " " + data.get("name", "")):
-            return data
-    return None
 
+        # Prefer structured Product/Offer data from LEGO's own product page.
+        for item in jsonld_objects(product_soup):
+            typ = item.get("@type", [])
+            types = typ if isinstance(typ, list) else [typ]
+            if "Product" not in types:
+                continue
+            offers = item.get("offers", {})
+            if isinstance(offers, list):
+                offers = next((x for x in offers if isinstance(x, dict)), {})
+            if not isinstance(offers, dict):
+                continue
+            price = offers.get("price") or offers.get("lowPrice")
+            currency = offers.get("priceCurrency") or "AUD"
+            if price is None or currency != "AUD":
+                continue
+            try:
+                amount = float(str(price).replace(",", "").replace("$", ""))
+            except (TypeError, ValueError):
+                continue
+            if amount > 0:
+                return {
+                    "name": item.get("name") or product_soup.title.get_text(" ", strip=True),
+                    "url": url,
+                    "sku": number,
+                    "price_aud": amount,
+                    "currency": "AUD",
+                }
+
+        # LEGO also exposes the current price in standard product metadata.
+        raw_price = ""
+        for selector in (
+            'meta[property="product:price:amount"]',
+            'meta[property="og:price:amount"]',
+            'meta[itemprop="price"]',
+            '[itemprop="price"]',
+            '[data-test="product-price"]',
+        ):
+            tag = product_soup.select_one(selector)
+            if tag:
+                raw_price = tag.get("content") or tag.get("value") or tag.get_text(" ", strip=True)
+                if raw_price:
+                    break
+
+        currency = "AUD"
+        for selector in (
+            'meta[property="product:price:currency"]',
+            'meta[property="og:price:currency"]',
+            'meta[itemprop="priceCurrency"]',
+        ):
+            tag = product_soup.select_one(selector)
+            if tag:
+                currency = tag.get("content") or tag.get_text(" ", strip=True) or "AUD"
+                break
+
+        if raw_price and currency.upper() == "AUD":
+            match = re.search(r"\d+(?:\.\d{1,2})?", str(raw_price).replace(",", ""))
+            if match:
+                amount = float(match.group(0))
+                if amount > 0:
+                    heading = product_soup.find("h1")
+                    return {
+                        "name": heading.get_text(" ", strip=True) if heading else "",
+                        "url": url,
+                        "sku": number,
+                        "price_aud": amount,
+                        "currency": "AUD",
+                    }
+
+    return None
 
 def load_json(path: Path, default):
     try:
@@ -321,7 +393,7 @@ def check_listing(retailer_key: str, url: str):
     if not data:
         return None
     name = data.get("name") or ""
-    number = set_number(name + " " + data.get("sku", "") + " " + url)
+    number = set_number(name + " " + data.get("sku", "")) or set_number(url)
     return {
         "retailer": retailer_key,
         "retailer_name": config["name"],
