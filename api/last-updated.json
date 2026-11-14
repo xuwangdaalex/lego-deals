@@ -1,5 +1,11 @@
 {
-  "status": "not_run",
-  "generated_at": null,
-  "message": "The scraper has not run yet."
+  "status": "incomplete",
+  "generated_at": "2026-11-14T01:59:55.791406+00:00",
+  "products_checked": 0,
+  "verified_products": 0,
+  "qualifying_deals": 0,
+  "message": "Prices are included only when product data is independently verified.",
+  "errors": [
+    "Myer sitemap unavailable: HTTPError: 404 Client Error: Not Found for url: https://www.myer.com.au/buy/sitemap.xml"
+  ]
 }

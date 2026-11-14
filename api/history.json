@@ -1,3 +1,11 @@
 {
-  "runs": []
+  "runs": [
+    {
+      "generated_at": "2026-11-14T01:59:55.791406+00:00",
+      "status": "incomplete",
+      "products_checked": 0,
+      "verified_products": 0,
+      "qualifying_deals": 0
+    }
+  ]
 }

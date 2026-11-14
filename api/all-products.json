@@ -1,9 +1,15 @@
 {
-  "generated_at": null,
+  "generated_at": "2026-11-14T01:59:55.791406+00:00",
   "currency": "AUD",
   "coverage": {
     "complete": false,
-    "status": "not_run"
+    "status": "incomplete",
+    "myer_product_urls_discovered": 0,
+    "myer_products_with_prices_checked": 0,
+    "verified_product_count": 0,
+    "errors": [
+      "Myer sitemap unavailable: HTTPError: 404 Client Error: Not Found for url: https://www.myer.com.au/buy/sitemap.xml"
+    ]
   },
   "products": []
 }
