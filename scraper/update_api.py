@@ -1,7 +1,8 @@
-"""Conservative Myer/LEGO AU deal collector.
+"""Daily multi-retailer LEGO deals collector for Australia.
 
-Only emits a deal when both retailer and official LEGO AU prices are independently
-read from product structured data and the set number matches.
+A product is a qualifying deal only when the retailer price and the matching
+Australian LEGO RRP can both be read independently. Catalogue discovery is
+best-effort because retailer page structures and anti-bot controls can change.
 """
 from __future__ import annotations
 
@@ -9,26 +10,90 @@ import json
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import quote, urljoin
+from urllib.parse import quote, urljoin, urlparse
 from zoneinfo import ZoneInfo
-import xml.etree.ElementTree as ET
 
 import requests
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "api"
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; LegoDealsMonitor/1.0; +https://github.com/xuwangdaalex/lego-deals)"}
-SESSION = requests.Session()
-SESSION.headers.update(HEADERS)
 TIMEOUT = 25
 THRESHOLD = 20.0
+MAX_PAGES = 20
+MAX_PRODUCTS_PER_RETAILER = 500
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; LegoDealsMonitor/2.0; +https://github.com/xuwangdaalex/lego-deals)",
+    "Accept-Language": "en-AU,en;q=0.9",
+}
+
+RETAILERS = {
+    "myer": {
+        "name": "Myer",
+        "category": "https://www.myer.com.au/c/all-toys/brand-lego",
+        "host": "myer.com.au",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?pageNumber={n}",
+        "product_path": ("/p/",),
+    },
+    "bigw": {
+        "name": "BIG W",
+        "category": "https://www.bigw.com.au/toys/lego/c/6822101",
+        "host": "bigw.com.au",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "product_path": ("/product/",),
+    },
+    "target": {
+        "name": "Target",
+        "category": "https://www.target.com.au/c/toys/lego/W152974",
+        "host": "target.com.au",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "product_path": ("/p/",),
+    },
+    "kmart": {
+        "name": "Kmart",
+        "category": "https://www.kmart.com.au/category/toys/shop-all-lego/",
+        "host": "kmart.com.au",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "product_path": ("/product/",),
+    },
+    "bricksmegastore": {
+        "name": "Bricks Megastore",
+        "category": "https://lego.bricksmegastore.com/collections/all-australian-locations",
+        "host": "bricksmegastore.com",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "product_path": ("/products/",),
+    },
+    "davidjones": {
+        "name": "David Jones",
+        "category": "https://www.davidjones.com/brand/lego",
+        "host": "davidjones.com",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "product_path": ("/product/", "/products/"),
+    },
+    "ebgames": {
+        "name": "EB Games",
+        "category": "https://www.ebgames.com.au/featured/lego",
+        "host": "ebgames.com.au",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "product_path": ("/product/", "/products/"),
+    },
+}
+
+_local = __import__("threading").local()
+
+
+def session():
+    if not hasattr(_local, "session"):
+        _local.session = requests.Session()
+        _local.session.headers.update(HEADERS)
+    return _local.session
 
 
 def get(url: str) -> str:
-    response = SESSION.get(url, timeout=TIMEOUT)
+    response = session().get(url, timeout=TIMEOUT)
     response.raise_for_status()
     return response.text
 
@@ -42,20 +107,18 @@ def jsonld_objects(soup: BeautifulSoup):
         stack = data if isinstance(data, list) else [data]
         while stack:
             item = stack.pop()
-            if isinstance(item, dict):
-                yield item
-                graph = item.get("@graph")
-                if isinstance(graph, list):
-                    stack.extend(graph)
-                for key in ("itemListElement", "mainEntity"):
-                    value = item.get(key)
-                    if isinstance(value, list):
-                        stack.extend(value)
-                    elif isinstance(value, dict):
-                        stack.append(value)
+            if not isinstance(item, dict):
+                continue
+            yield item
+            for key in ("@graph", "itemListElement", "mainEntity", "offers"):
+                value = item.get(key)
+                if isinstance(value, list):
+                    stack.extend(x for x in value if isinstance(x, dict))
+                elif isinstance(value, dict):
+                    stack.append(value)
 
 
-def product_data(url: str):
+def extract_product_data(url: str):
     soup = BeautifulSoup(get(url), "html.parser")
     for item in jsonld_objects(soup):
         typ = item.get("@type", [])
@@ -64,90 +127,75 @@ def product_data(url: str):
             continue
         offers = item.get("offers", {})
         if isinstance(offers, list):
-            offers = offers[0] if offers else {}
+            offers = next((x for x in offers if isinstance(x, dict)), {})
+        if not isinstance(offers, dict):
+            continue
         price = offers.get("price") or offers.get("lowPrice")
-        currency = offers.get("priceCurrency")
-        if price is None:
+        currency = offers.get("priceCurrency") or "AUD"
+        if price is None or currency != "AUD":
             continue
         try:
             amount = float(str(price).replace(",", "").replace("$", ""))
         except ValueError:
             continue
-        if currency and currency != "AUD":
-            continue
         return {
-            "name": item.get("name"),
+            "name": item.get("name") or "",
             "url": item.get("url") or url,
             "sku": str(item.get("sku") or item.get("mpn") or ""),
             "price_aud": amount,
-            "currency": currency or "AUD",
+            "currency": currency,
         }
     return None
 
 
-def myer_product_urls():
-    """Discover LEGO product pages from Myer's public, paginated LEGO category.
-
-    Myer's sitemap endpoint is not reliable. The category listing is the public
-    catalogue entry point and exposes product links plus pagination.
-    """
-    category = "https://www.myer.com.au/c/all-toys/brand-lego"
-    product_urls = []
-    seen_pages = set()
-    max_page = 1
-    errors = []
-
-    for page in range(1, 21):
-        page_url = category if page == 1 else f"{category}?pageNumber={page}"
+def discover_product_urls(retailer_key: str):
+    config = RETAILERS[retailer_key]
+    base = config["category"]
+    urls, seen_pages, errors = [], set(), []
+    for page in range(1, MAX_PAGES + 1):
+        page_url = config["page_url"](base, page)
         try:
-            html = get(page_url)
+            soup = BeautifulSoup(get(page_url), "html.parser")
         except Exception as exc:
-            errors.append(f"Myer LEGO category page {page} failed: {type(exc).__name__}")
+            errors.append(f"{config['name']} catalogue page {page}: {type(exc).__name__}")
             break
 
-        soup = BeautifulSoup(html, "html.parser")
-        found_on_page = []
-        for anchor in soup.select('a[href*="/p/"]'):
-            href = urljoin("https://www.myer.com.au", anchor.get("href", "").strip())
-            if "myer.com.au/p/" in href:
-                href = href.split("?")[0].rstrip("/")
-                found_on_page.append(href)
-
-        # Discover the page count from Myer's own pagination links.
+        found = []
         for anchor in soup.select("a[href]"):
-            href = anchor.get("href", "")
-            match = re.search(r"[?&]pageNumber=(\d+)", href)
-            if match:
-                max_page = max(max_page, int(match.group(1)))
+            href = urljoin(page_url, anchor.get("href", "").strip())
+            parsed = urlparse(href)
+            host = parsed.netloc.lower().removeprefix("www.")
+            path = parsed.path.lower()
+            if not host.endswith(config["host"]):
+                continue
+            if not any(part in path for part in config["product_path"]):
+                continue
+            label = " ".join((anchor.get_text(" ", strip=True), path)).lower()
+            if "lego" not in label and not re.search(r"(?<!\d)\d{4,6}(?!\d)", label):
+                continue
+            found.append(href.split("?")[0].rstrip("/"))
 
-        unique = list(dict.fromkeys(found_on_page))
+        unique = list(dict.fromkeys(found))
         if not unique:
             if page == 1:
-                errors.append("Myer LEGO category returned no product links.")
+                errors.append(f"{config['name']} catalogue returned no product links (possibly JS-rendered or blocked).")
             break
-
         signature = tuple(unique)
         if signature in seen_pages:
             break
         seen_pages.add(signature)
-        product_urls.extend(unique)
-
-        if page >= max_page:
+        urls.extend(unique)
+        if len(urls) >= MAX_PRODUCTS_PER_RETAILER:
+            urls = urls[:MAX_PRODUCTS_PER_RETAILER]
             break
-        time.sleep(0.25)
+        if len(unique) < 5:
+            break
+        time.sleep(0.15)
 
-    if not product_urls and not errors:
-        errors.append("Myer LEGO catalogue discovery returned no products.")
-    # Expose discovery problems to the caller so the API cannot claim full coverage.
-    myer_product_urls.last_errors = errors
-    return list(dict.fromkeys(product_urls))
-
-
-myer_product_urls.last_errors = []
+    return list(dict.fromkeys(urls)), errors
 
 
 def set_number(text: str) -> str | None:
-    # LEGO set numbers are typically 4-6 digits. Prefer explicit set/SKU references.
     match = re.search(r"(?<!\d)(\d{4,6})(?!\d)", text or "")
     return match.group(1) if match else None
 
@@ -156,14 +204,13 @@ def lego_official_rrp(number: str):
     search_url = "https://www.lego.com/en-au/search?q=" + quote(number)
     soup = BeautifulSoup(get(search_url), "html.parser")
     candidates = []
-    for a in soup.select('a[href*="/product/"]'):
-        href = urljoin("https://www.lego.com", a.get("href", ""))
-        if number not in href:
-            continue
-        candidates.append(href.split("?")[0])
+    for anchor in soup.select('a[href*="/product/"]'):
+        href = urljoin("https://www.lego.com", anchor.get("href", ""))
+        if number in href:
+            candidates.append(href.split("?")[0])
     for url in dict.fromkeys(candidates):
         try:
-            data = product_data(url)
+            data = extract_product_data(url)
         except Exception:
             continue
         if data and number in (data.get("url", "") + " " + data.get("sku", "") + " " + data.get("name", "")):
@@ -182,100 +229,152 @@ def write_json(path: Path, payload):
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
 
 
+def check_listing(retailer_key: str, url: str):
+    config = RETAILERS[retailer_key]
+    data = extract_product_data(url)
+    if not data:
+        return None
+    name = data.get("name") or ""
+    number = set_number(name + " " + data.get("sku", "") + " " + url)
+    return {
+        "retailer": retailer_key,
+        "retailer_name": config["name"],
+        "set_number": number,
+        "name": name,
+        "price_aud": data["price_aud"],
+        "product_url": url,
+        "rrp_aud": None,
+        "discount_percent": None,
+        "verified": False,
+        "stock_status": "unknown",
+    }
+
+
 def main():
     now = datetime.now(ZoneInfo("Australia/Sydney"))
-    # Workflow has two UTC schedules to cover DST. Only run on the local 08:00 trigger.
     if "--force" not in sys.argv and now.hour != 8:
         print(f"Skipping schedule outside 08:00 Sydney time (now {now.isoformat()}).")
         return
 
     generated = datetime.now(timezone.utc).isoformat()
-    products, deals, errors = [], [], []
-    try:
-        urls = myer_product_urls()
-        errors.extend(myer_product_urls.last_errors)
-    except Exception as exc:
-        urls = []
-        errors.append(f"Myer LEGO catalogue discovery failed: {type(exc).__name__}: {exc}")
+    all_products, deals, errors = [], [], []
+    retailer_coverage = {}
+    discovered = {}
 
-    checked = 0
-    for url in urls:
-        try:
-            myer = product_data(url)
-            if not myer:
-                continue
-            checked += 1
-            name = myer.get("name") or ""
-            number = set_number(name + " " + myer.get("sku", "") + " " + url)
-            record = {
-                "set_number": number,
-                "name": name,
-                "myer_price_aud": myer["price_aud"],
-                "myer_url": url,
-                "rrp_aud": None,
-                "discount_percent": None,
-                "verified": False,
-                "stock_status": "unknown",
-            }
-            if number:
-                try:
-                    lego = lego_official_rrp(number)
-                    if lego:
-                        rrp = lego["price_aud"]
-                        discount = round((rrp - myer["price_aud"]) / rrp * 100, 2) if rrp else None
-                        record.update({
-                            "rrp_aud": rrp,
-                            "discount_percent": discount,
-                            "lego_url": lego["url"],
-                            "verified": True,
-                        })
-                        if discount is not None and discount >= THRESHOLD:
-                            deals.append(record)
-                except Exception as exc:
-                    errors.append(f"LEGO AU lookup failed for set {number}: {type(exc).__name__}")
-            products.append(record)
-            time.sleep(0.35)
-        except Exception as exc:
-            errors.append(f"Myer product fetch failed: {type(exc).__name__}")
-            continue
+    for key in RETAILERS:
+        urls, discovery_errors = discover_product_urls(key)
+        discovered[key] = urls
+        errors.extend(discovery_errors)
+        retailer_coverage[key] = {
+            "name": RETAILERS[key]["name"],
+            "product_urls_discovered": len(urls),
+            "products_with_prices_checked": 0,
+            "verified_products": 0,
+            "qualifying_deals": 0,
+            "status": "incomplete",
+            "errors": discovery_errors,
+        }
+        print(f"{RETAILERS[key]['name']}: discovered {len(urls)} product URLs")
 
-    coverage_complete = bool(urls) and checked > 0 and not errors
+    # Fetch product pages concurrently to keep the daily job within GitHub Actions limits.
+    tasks = []
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for key, urls in discovered.items():
+            for url in urls:
+                tasks.append((key, pool.submit(check_listing, key, url)))
+        for key, future in tasks:
+            try:
+                record = future.result()
+                if record:
+                    all_products.append(record)
+                    retailer_coverage[key]["products_with_prices_checked"] += 1
+            except Exception as exc:
+                msg = f"{RETAILERS[key]['name']} product fetch failed: {type(exc).__name__}"
+                retailer_coverage[key]["errors"].append(msg)
+                errors.append(msg)
+
+    # Resolve each LEGO set RRP once, then apply it to every retailer listing.
+    numbers = sorted({p["set_number"] for p in all_products if p["set_number"]})
+    rrp_cache = {}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = {pool.submit(lego_official_rrp, number): number for number in numbers}
+        for future in as_completed(futures):
+            number = futures[future]
+            try:
+                rrp_cache[number] = future.result()
+            except Exception as exc:
+                rrp_cache[number] = None
+                errors.append(f"LEGO AU lookup failed for set {number}: {type(exc).__name__}")
+
+    for product in all_products:
+        number = product["set_number"]
+        lego = rrp_cache.get(number) if number else None
+        if lego:
+            rrp = lego["price_aud"]
+            discount = round((rrp - product["price_aud"]) / rrp * 100, 2) if rrp else None
+            product.update({
+                "rrp_aud": rrp,
+                "discount_percent": discount,
+                "lego_url": lego["url"],
+                "verified": True,
+            })
+            key = product["retailer"]
+            retailer_coverage[key]["verified_products"] += 1
+            if discount is not None and discount >= THRESHOLD:
+                deals.append(product)
+                retailer_coverage[key]["qualifying_deals"] += 1
+
+    for key, coverage in retailer_coverage.items():
+        coverage["status"] = (
+            "complete" if discovered[key] and coverage["products_with_prices_checked"] > 0
+            and not coverage["errors"] else "incomplete"
+        )
+        coverage["errors"] = coverage["errors"][:20]
+
+    # A run is complete only if every retailer completed discovery and product checks.
+    coverage_complete = all(x["status"] == "complete" for x in retailer_coverage.values()) and not errors
     status = "complete" if coverage_complete else "incomplete"
     deals.sort(key=lambda x: x["discount_percent"] or 0, reverse=True)
+    all_products.sort(key=lambda x: (x["retailer_name"], x["set_number"] or "", x["name"]))
 
-    deals_payload = {
+    coverage = {
+        "complete": coverage_complete,
+        "status": status,
+        "retailers": retailer_coverage,
+        "product_count": len(all_products),
+        "verified_product_count": sum(1 for p in all_products if p["verified"]),
+        "errors": errors[:100],
+    }
+    write_json(API / "lego-deals.json", {
         "generated_at": generated, "currency": "AUD",
         "discount_threshold_percent": THRESHOLD,
-        "coverage": {"complete": coverage_complete, "status": status,
-                     "myer_product_urls_discovered": len(urls),
-                     "myer_products_with_prices_checked": checked,
-                     "verified_product_count": sum(1 for p in products if p["verified"]),
-                     "errors": errors[:50]},
-        "deals": deals,
-    }
-    all_payload = {
+        "coverage": coverage, "deals": deals,
+    })
+    write_json(API / "all-products.json", {
         "generated_at": generated, "currency": "AUD",
-        "coverage": deals_payload["coverage"], "products": products,
-    }
-    write_json(API / "lego-deals.json", deals_payload)
-    write_json(API / "all-products.json", all_payload)
+        "coverage": coverage, "products": all_products,
+    })
     write_json(API / "last-updated.json", {
         "status": status, "generated_at": generated,
-        "products_checked": checked, "verified_products": sum(1 for p in products if p["verified"]),
-        "qualifying_deals": len(deals), "message": "Prices are included only when product data is independently verified.",
-        "errors": errors[:50],
+        "products_checked": len(all_products),
+        "verified_products": coverage["verified_product_count"],
+        "qualifying_deals": len(deals),
+        "retailers": retailer_coverage,
+        "message": "Only independently verified retailer prices and matching Australian LEGO RRPs qualify as deals.",
+        "errors": errors[:100],
     })
 
     history_path = API / "history.json"
     history = load_json(history_path, {"runs": []})
     history.setdefault("runs", []).append({
         "generated_at": generated, "status": status,
-        "products_checked": checked, "verified_products": sum(1 for p in products if p["verified"]),
+        "products_checked": len(all_products),
+        "verified_products": coverage["verified_product_count"],
         "qualifying_deals": len(deals),
     })
     history["runs"] = history["runs"][-365:]
     write_json(history_path, history)
-    print(f"Run status={status}; products checked={checked}; deals={len(deals)}")
+    print(f"Run status={status}; products checked={len(all_products)}; verified={coverage['verified_product_count']}; deals={len(deals)}")
 
 
 if __name__ == "__main__":
