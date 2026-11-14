@@ -116,7 +116,7 @@ def myer_product_urls():
         # Discover the page count from Myer's own pagination links.
         for anchor in soup.select("a[href]"):
             href = anchor.get("href", "")
-            match = re.search(r"[?&]pageNumber=(\\d+)", href)
+            match = re.search(r"[?&]pageNumber=(\d+)", href)
             if match:
                 max_page = max(max_page, int(match.group(1)))
 
@@ -193,9 +193,10 @@ def main():
     products, deals, errors = [], [], []
     try:
         urls = myer_product_urls()
+        errors.extend(myer_product_urls.last_errors)
     except Exception as exc:
         urls = []
-        errors.append(f"Myer sitemap unavailable: {type(exc).__name__}: {exc}")
+        errors.append(f"Myer LEGO catalogue discovery failed: {type(exc).__name__}: {exc}")
 
     checked = 0
     for url in urls:
