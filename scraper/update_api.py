@@ -38,16 +38,6 @@ HEADERS = {
 }
 
 RETAILERS = {
-    "legoau": {
-        "name": "LEGO AU (Official)",
-        "category": "https://www.lego.com/en-au/categories/all-sets",
-        "host": "lego.com",
-        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
-        "product_path": ("/product/",),
-        # Start with the first server-rendered catalogue batch. The category uses
-        # a Load More interface; pagination is validated before expanding it.
-        "max_pages": 1,
-    },
     "myer": {
         "name": "Myer",
         "category": "https://www.myer.com.au/c/all-toys/brand-lego",
@@ -417,194 +407,6 @@ def set_number(text: str) -> str | None:
     return match.group(1) if match else None
 
 
-def lego_tracker_rrp_map(numbers: set[str]):
-    """Read LEGO Australia's own listed prices from an independent price tracker.
-
-    The tracker identifies these as prices at LEGO Australia. This is a fallback
-    source, not a claim that the tracker is operated by LEGO.
-    """
-    wanted = set(numbers)
-    found = {}
-    page_url = "https://legopricetracker.co.nz/au/retailers/lego-australia"
-    seen_pages = set()
-
-    for _ in range(50):
-        if not page_url or page_url in seen_pages or len(found) >= len(wanted):
-            break
-        seen_pages.add(page_url)
-        try:
-            soup = BeautifulSoup(get(page_url), "html.parser")
-        except Exception as exc:
-            print(f"LEGO price tracker page failed: {format_error(exc)} ({page_url})")
-            break
-
-        for anchor in soup.select('a[href*="/au/sets/"]'):
-            href = urljoin(page_url, anchor.get("href", ""))
-            match = re.search(r"/au/sets/(\d{4,6})-\d+/", urlparse(href).path)
-            if not match:
-                continue
-            number = match.group(1)
-            if number not in wanted or number in found:
-                continue
-
-            # Walk up to the smallest card containing the LEGO Australia price.
-            for parent in anchor.parents:
-                card_text = parent.get_text(" ", strip=True)
-                if len(card_text) > 1200:
-                    break
-                if "LEGO Australia" not in card_text:
-                    continue
-                price_match = re.search(r"\$\s*([\d,]+\.\d{2})", card_text)
-                if not price_match:
-                    continue
-                amount = float(price_match.group(1).replace(",", ""))
-                if amount <= 0:
-                    continue
-                found[number] = {
-                    "price_aud": amount,
-                    "url": href.split("?")[0],
-                    "name": anchor.get_text(" ", strip=True),
-                    "sku": number,
-                    "currency": "AUD",
-                    "source": "LEGO Price Tracker (listed as LEGO Australia price)",
-                }
-                break
-
-        next_url = None
-        for anchor in soup.select("a[href]"):
-            if anchor.get_text(" ", strip=True).strip().lower() == "next":
-                next_url = urljoin(page_url, anchor.get("href", ""))
-                break
-        page_url = next_url
-        time.sleep(0.1)
-
-    print(f"LEGO price tracker matched {len(found)} of {len(wanted)} requested set numbers.")
-    return found
-
-
-def lego_official_rrp(number: str):
-    """Read the Australian RRP from the matching official LEGO product page."""
-    search_url = "https://www.lego.com/en-au/search?q=" + quote(number)
-    soup = BeautifulSoup(get(search_url), "html.parser")
-    candidates = []
-
-    # LEGO product URLs end in the set number, e.g. /product/name-11390.
-    for anchor in soup.select('a[href*="/product/"]'):
-        href = urljoin("https://www.lego.com", anchor.get("href", ""))
-        path = urlparse(href).path.rstrip("/")
-        if re.search(rf"-{re.escape(number)}$", path):
-            candidates.append(href.split("?")[0])
-
-    for url in dict.fromkeys(candidates):
-        try:
-            html = get(url)
-            product_soup = BeautifulSoup(html, "html.parser")
-        except Exception:
-            continue
-
-        # Prefer structured Product/Offer data from LEGO's own product page.
-        for item in jsonld_objects(product_soup):
-            typ = item.get("@type", [])
-            types = typ if isinstance(typ, list) else [typ]
-            if "Product" not in types:
-                continue
-            offers = item.get("offers", {})
-            if isinstance(offers, list):
-                offers = next((x for x in offers if isinstance(x, dict)), {})
-            if not isinstance(offers, dict):
-                continue
-            price = offers.get("price") or offers.get("lowPrice")
-            currency = offers.get("priceCurrency") or "AUD"
-            if price is None or currency != "AUD":
-                continue
-            try:
-                amount = float(str(price).replace(",", "").replace("$", ""))
-            except (TypeError, ValueError):
-                continue
-            if amount > 0:
-                return {
-                    "name": item.get("name") or product_soup.title.get_text(" ", strip=True),
-                    "url": url,
-                    "sku": number,
-                    "price_aud": amount,
-                    "currency": "AUD",
-                }
-
-        # LEGO also exposes the current price in standard product metadata.
-        raw_price = ""
-        for selector in (
-            'meta[property="product:price:amount"]',
-            'meta[property="og:price:amount"]',
-            'meta[itemprop="price"]',
-            '[itemprop="price"]',
-            '[data-test="product-price"]',
-        ):
-            tag = product_soup.select_one(selector)
-            if tag:
-                raw_price = tag.get("content") or tag.get("value") or tag.get_text(" ", strip=True)
-                if raw_price:
-                    break
-
-        currency = "AUD"
-        for selector in (
-            'meta[property="product:price:currency"]',
-            'meta[property="og:price:currency"]',
-            'meta[itemprop="priceCurrency"]',
-        ):
-            tag = product_soup.select_one(selector)
-            if tag:
-                currency = tag.get("content") or tag.get_text(" ", strip=True) or "AUD"
-                break
-
-        if raw_price and currency.upper() == "AUD":
-            match = re.search(r"\d+(?:\.\d{1,2})?", str(raw_price).replace(",", ""))
-            if match:
-                amount = float(match.group(0))
-                if amount > 0:
-                    heading = product_soup.find("h1")
-                    return {
-                        "name": heading.get_text(" ", strip=True) if heading else "",
-                        "url": url,
-                        "sku": number,
-                        "price_aud": amount,
-                        "currency": "AUD",
-                    }
-
-    return None
-
-def load_json(path: Path, default):
-    try:
-        return json.loads(path.read_text())
-    except Exception:
-        return default
-
-
-def write_json(path: Path, payload):
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
-
-
-def check_listing(retailer_key: str, url: str):
-    config = RETAILERS[retailer_key]
-    data = extract_product_data(url, retailer_key)
-    if not data:
-        return None
-    name = data.get("name") or ""
-    number = set_number(name + " " + data.get("sku", "")) or set_number(url)
-    return {
-        "retailer": retailer_key,
-        "retailer_name": config["name"],
-        "set_number": number,
-        "name": name,
-        "price_aud": data["price_aud"],
-        "product_url": url,
-        "rrp_aud": None,
-        "discount_percent": None,
-        "verified": False,
-        "stock_status": data.get("stock_status", "unknown"),
-        **({"retailer_data_source": data["data_source"]} if data.get("data_source") else {}),
-    }
-
-
 def main():
     now = datetime.now(ZoneInfo("Australia/Sydney"))
     if "--force" not in sys.argv and now.hour != 8:
@@ -651,9 +453,21 @@ def main():
                 retailer_coverage[key]["errors"].append(msg)
                 errors.append(msg)
 
-    # Build the RRP reference map. Prefer prices read directly from LEGO AU
-    # product pages; use the independent tracker only as a clearly labelled fallback.
+    # Bricks Megastore is the sole reference-price source.
+    # Match retailer listings by LEGO set number; never fetch LEGO.com or
+    # substitute another retailer's price as the reference.
     rrp_cache = {}
+    for product in all_products:
+        if product["retailer"] != "bricksmegastore" or not product["set_number"]:
+            continue
+        rrp_cache[product["set_number"]] = {
+            "price_aud": product["price_aud"],
+            "url": product["product_url"],
+            "name": product["name"],
+            "sku": product["set_number"],
+            "source": "Bricks Megastore listing price",
+        }
+
     for product in all_products:
         if product["retailer"] == "legoau" and product["set_number"]:
             rrp_cache[product["set_number"]] = {
@@ -700,15 +514,15 @@ def main():
             product.update({
                 "rrp_aud": rrp,
                 "discount_percent": discount,
-                "lego_url": lego["url"],
-                "rrp_source": lego.get("source", "LEGO Australia product page"),
+                "rrp_url": lego["url"],
+                "rrp_source": lego.get("source", "Bricks Megastore listing price"),
                 "verified": True,
             })
             key = product["retailer"]
             retailer_coverage[key]["verified_products"] += 1
-            # LEGO AU is the official price reference, so its own listings are
-            # included in all-products but excluded from retailer deal alerts.
-            if key != "legoau" and discount is not None and discount >= THRESHOLD:
+            # Bricks Megastore provides the reference price; it is not a deal
+            # against itself because its own discount is always zero.
+            if key != "bricksmegastore" and discount is not None and discount >= THRESHOLD:
                 deals.append(product)
                 retailer_coverage[key]["qualifying_deals"] += 1
 
