@@ -327,6 +327,7 @@ def discover_bigw_via_api():
 
 
 def discover_product_urls(retailer_key: str):
+    api_fallback_error = None
     if retailer_key == "bigw":
         try:
             api_urls = discover_bigw_via_api()
@@ -335,12 +336,12 @@ def discover_product_urls(retailer_key: str):
                 return api_urls[:MAX_PRODUCTS_PER_RETAILER], []
             return [], ["BIG W data API returned no LEGO listings."]
         except Exception as exc:
-            api_error = f"BIG W data API failed: {format_error(exc)}"
-            print(api_error)
+            api_fallback_error = f"BIG W data API failed: {format_error(exc)}"
+            print(api_fallback_error)
             # Fall back to the retailer's own category page if the API is unavailable.
     config = RETAILERS[retailer_key]
     base = config["category"]
-    urls, seen_pages, errors = [], set(), []
+    urls, seen_pages, errors = [], set(), ([api_fallback_error] if api_fallback_error else [])
     page_limit = min(MAX_PAGES, config.get("max_pages", MAX_PAGES))
     for page in range(1, page_limit + 1):
         page_url = config["page_url"](base, page)
@@ -599,7 +600,8 @@ def check_listing(retailer_key: str, url: str):
         "rrp_aud": None,
         "discount_percent": None,
         "verified": False,
-        "stock_status": "unknown",
+        "stock_status": data.get("stock_status", "unknown"),
+        **({"retailer_data_source": data["data_source"]} if data.get("data_source") else {}),
     }
 
 
