@@ -86,24 +86,64 @@ def product_data(url: str):
 
 
 def myer_product_urls():
-    sitemap = "https://www.myer.com.au/sitemap.xml"
-    xml = ET.fromstring(get(sitemap))
-    ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-    locs = [e.text for e in xml.findall(".//sm:loc", ns) if e.text]
-    sitemap_urls = locs
-    if locs and all(u.endswith(".xml") or "sitemap" in u for u in locs):
-        sitemap_urls = []
-        for child in locs[:30]:
-            try:
-                child_xml = ET.fromstring(get(child))
-                sitemap_urls.extend(e.text for e in child_xml.findall(".//sm:loc", ns) if e.text)
-            except Exception:
-                continue
-    # Restrict to product-looking URLs; don't crawl every category or editorial page.
-    return list(dict.fromkeys(
-        u for u in sitemap_urls
-        if "myer.com.au/p/" in u or re.search(r"/product/|/products/", u, re.I)
-    ))
+    """Discover LEGO product pages from Myer's public, paginated LEGO category.
+
+    Myer's sitemap endpoint is not reliable. The category listing is the public
+    catalogue entry point and exposes product links plus pagination.
+    """
+    category = "https://www.myer.com.au/c/all-toys/brand-lego"
+    product_urls = []
+    seen_pages = set()
+    max_page = 1
+    errors = []
+
+    for page in range(1, 21):
+        page_url = category if page == 1 else f"{category}?pageNumber={page}"
+        try:
+            html = get(page_url)
+        except Exception as exc:
+            errors.append(f"Myer LEGO category page {page} failed: {type(exc).__name__}")
+            break
+
+        soup = BeautifulSoup(html, "html.parser")
+        found_on_page = []
+        for anchor in soup.select('a[href*="/p/"]'):
+            href = urljoin("https://www.myer.com.au", anchor.get("href", "").strip())
+            if "myer.com.au/p/" in href:
+                href = href.split("?")[0].rstrip("/")
+                found_on_page.append(href)
+
+        # Discover the page count from Myer's own pagination links.
+        for anchor in soup.select("a[href]"):
+            href = anchor.get("href", "")
+            match = re.search(r"[?&]pageNumber=(\\d+)", href)
+            if match:
+                max_page = max(max_page, int(match.group(1)))
+
+        unique = list(dict.fromkeys(found_on_page))
+        if not unique:
+            if page == 1:
+                errors.append("Myer LEGO category returned no product links.")
+            break
+
+        signature = tuple(unique)
+        if signature in seen_pages:
+            break
+        seen_pages.add(signature)
+        product_urls.extend(unique)
+
+        if page >= max_page:
+            break
+        time.sleep(0.25)
+
+    if not product_urls and not errors:
+        errors.append("Myer LEGO catalogue discovery returned no products.")
+    # Expose discovery problems to the caller so the API cannot claim full coverage.
+    myer_product_urls.last_errors = errors
+    return list(dict.fromkeys(product_urls))
+
+
+myer_product_urls.last_errors = []
 
 
 def set_number(text: str) -> str | None:
