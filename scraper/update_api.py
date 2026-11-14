@@ -192,10 +192,9 @@ def jsonld_objects(soup: BeautifulSoup):
                     stack.append(value)
 
 
-def extract_product_data(url: str):
-    soup = BeautifulSoup(get(url), "html.parser")
+def parse_product_html(html: str, url: str):
+    soup = BeautifulSoup(html, "html.parser")
 
-    # Prefer structured Product data when the retailer provides it.
     for item in jsonld_objects(soup):
         typ = item.get("@type", [])
         types = typ if isinstance(typ, list) else [typ]
@@ -222,8 +221,6 @@ def extract_product_data(url: str):
             "currency": currency,
         }
 
-    # BIG W product pages may omit Product JSON-LD. Fall back to standard
-    # product/SEO metadata rather than silently dropping every such listing.
     def meta_value(*selectors):
         for selector in selectors:
             tag = soup.select_one(selector)
@@ -251,23 +248,29 @@ def extract_product_data(url: str):
     ) or "AUD"
 
     if raw_price and currency.upper() == "AUD":
-        match = re.search(r"\d+(?:[.,]\d{1,2})?", raw_price.replace(",", ""))
+        match = re.search(r"\\d+(?:[.,]\\d{1,2})?", raw_price.replace(",", ""))
         if match:
-            try:
-                amount = float(match.group(0))
-                if amount > 0:
-                    sku = url.rstrip("/").split("/")[-1]
-                    return {
-                        "name": name,
-                        "url": url,
-                        "sku": sku,
-                        "price_aud": amount,
-                        "currency": "AUD",
-                    }
-            except ValueError:
-                pass
-
+            amount = float(match.group(0))
+            if amount > 0:
+                sku = url.rstrip("/").split("/")[-1]
+                return {
+                    "name": name,
+                    "url": url,
+                    "sku": sku,
+                    "price_aud": amount,
+                    "currency": "AUD",
+                }
     return None
+
+
+def extract_product_data(url: str, retailer_key: str | None = None):
+    html = get(url)
+    data = parse_product_html(html, url)
+    # David Jones and LEGO AU pages may return a JS shell to requests even when
+    # the public page itself is available. Render those product pages normally.
+    if data is None and retailer_key in {"davidjones", "legoau"} and sync_playwright is not None:
+        data = parse_product_html(browser_get(url), url)
+    return data
 
 
 def discover_product_urls(retailer_key: str):
@@ -452,7 +455,7 @@ def write_json(path: Path, payload):
 
 def check_listing(retailer_key: str, url: str):
     config = RETAILERS[retailer_key]
-    data = extract_product_data(url)
+    data = extract_product_data(url, retailer_key)
     if not data:
         return None
     name = data.get("name") or ""
