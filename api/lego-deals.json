@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-14T22:07:30.046041+00:00",
+  "generated_at": "2026-11-15T09:51:56.068796+00:00",
   "currency": "AUD",
   "discount_threshold_percent": 20.0,
   "coverage": {
@@ -8,10 +8,10 @@
     "retailers": {
       "myer": {
         "name": "Myer",
-        "product_urls_discovered": 393,
-        "products_with_prices_checked": 393,
-        "verified_products": 218,
-        "qualifying_deals": 10,
+        "product_urls_discovered": 389,
+        "products_with_prices_checked": 389,
+        "verified_products": 186,
+        "qualifying_deals": 7,
         "status": "complete",
         "errors": [],
         "no_data": false
@@ -24,7 +24,7 @@
         "qualifying_deals": 0,
         "status": "incomplete",
         "errors": [
-          "BIG W data API failed: HTTP 401",
+          "BIG W data API failed: RuntimeError",
           "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)"
         ],
         "no_data": true
@@ -33,7 +33,7 @@
         "name": "Target",
         "product_urls_discovered": 493,
         "products_with_prices_checked": 490,
-        "verified_products": 245,
+        "verified_products": 213,
         "qualifying_deals": 8,
         "status": "complete",
         "errors": [],
@@ -54,8 +54,8 @@
       "bricksmegastore": {
         "name": "Bricks Megastore",
         "product_urls_discovered": 463,
-        "products_with_prices_checked": 374,
-        "verified_products": 374,
+        "products_with_prices_checked": 338,
+        "verified_products": 338,
         "qualifying_deals": 0,
         "status": "complete",
         "errors": [],
@@ -108,10 +108,10 @@
         "reason": "No product URLs discovered"
       }
     ],
-    "product_count": 1257,
-    "verified_product_count": 837,
+    "product_count": 1217,
+    "verified_product_count": 737,
     "errors": [
-      "BIG W data API failed: HTTP 401",
+      "BIG W data API failed: RuntimeError",
       "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)",
       "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
       "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego).",
@@ -158,34 +158,6 @@
     {
       "retailer": "myer",
       "retailer_name": "Myer",
-      "set_number": "60511",
-      "name": "City Vintage Steam Train Building Set 60511",
-      "price_aud": 99.99,
-      "product_url": "https://www.myer.com.au/p/lego-city-vintage-steam-train-60511",
-      "rrp_aud": 149.99,
-      "discount_percent": 33.34,
-      "rrp_url": "/products/lego-city-vintage-steam-train",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown"
-    },
-    {
-      "retailer": "target",
-      "retailer_name": "Target",
-      "set_number": "71828",
-      "name": "LEGO® NINJAGO Lloyd's Pull-Back Race Car 71828",
-      "price_aud": 25.0,
-      "product_url": "https://www.target.com.au/p/lego-ninjago-lloyd-s-pull-back-race-car-71828/70792379",
-      "rrp_aud": 34.99,
-      "discount_percent": 28.55,
-      "rrp_url": "/products/lego-ninjago-lloyd-s-pull-back-race-car",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
       "set_number": "42704",
       "name": "Heartlake City Grand Hotel Friends Building Set 42704",
       "price_aud": 179.99,
@@ -207,34 +179,6 @@
       "rrp_aud": 199.99,
       "discount_percent": 27.5,
       "rrp_url": "/products/lego-city-dump-truck-front-end-loader",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "75446",
-      "name": "Star Wars The Mandalorian Grogu 75446",
-      "price_aud": 169.99,
-      "product_url": "https://www.myer.com.au/p/lego-star-wars-tm-grogu--mandalorian-apprentice--75446",
-      "rrp_aud": 229.99,
-      "discount_percent": 26.09,
-      "rrp_url": "/products/lego-star-wars-grogu-mandalorian-apprentice",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown"
-    },
-    {
-      "retailer": "myer",
-      "retailer_name": "Myer",
-      "set_number": "43257",
-      "name": "Disney Classic Angel 43257",
-      "price_aud": 88.99,
-      "product_url": "https://www.myer.com.au/p/lego-disney-classic-angel-43257",
-      "rrp_aud": 119.99,
-      "discount_percent": 25.84,
-      "rrp_url": "/products/lego-disney-angel",
       "rrp_source": "Bricks Megastore listing price",
       "verified": true,
       "stock_status": "unknown"
@@ -270,13 +214,27 @@
     {
       "retailer": "myer",
       "retailer_name": "Myer",
-      "set_number": "42686",
-      "name": "Friends Fun Indoor Playground 42686",
-      "price_aud": 69.0,
-      "product_url": "https://www.myer.com.au/p/lego-friends-fun-indoor-playground-42686",
-      "rrp_aud": 89.99,
-      "discount_percent": 23.32,
-      "rrp_url": "/products/lego-friends-fun-indoor-playground",
+      "set_number": "31220",
+      "name": "Art Claude Monet Bridge Over A Pond Of Water Lilies 31220",
+      "price_aud": 229.99,
+      "product_url": "https://www.myer.com.au/p/lego-art-claude-monet-–-bridge-over-a-pond-of-water-lilies-31220",
+      "rrp_aud": 299.99,
+      "discount_percent": 23.33,
+      "rrp_url": "/products/lego-art-claude-monet-bridge-over-a-pond-of-water-lilies",
+      "rrp_source": "Bricks Megastore listing price",
+      "verified": true,
+      "stock_status": "unknown"
+    },
+    {
+      "retailer": "target",
+      "retailer_name": "Target",
+      "set_number": "42666",
+      "name": "LEGO® Friends Cat Birthday Party & Tree House 42666",
+      "price_aud": 39.0,
+      "product_url": "https://www.target.com.au/p/lego-friends-cat-birthday-party-tree-house-42666/71499000",
+      "rrp_aud": 49.99,
+      "discount_percent": 21.98,
+      "rrp_url": "/products/lego-friends-cat-birthday-party-tree-house",
       "rrp_source": "Bricks Megastore listing price",
       "verified": true,
       "stock_status": "unknown"
@@ -368,13 +326,13 @@
     {
       "retailer": "target",
       "retailer_name": "Target",
-      "set_number": "43014",
-      "name": "LEGO® Editions Formula 1 Scuderia Ferrari HP Charles Leclerc Helmet 43014",
-      "price_aud": 119.0,
-      "product_url": "https://www.target.com.au/p/lego-editions-formula-1-scuderia-ferrari-hp-charles-leclerc-helmet-43-14/72481301",
-      "rrp_aud": 149.99,
-      "discount_percent": 20.66,
-      "rrp_url": "/products/lego-editions-scuderia-ferrari-hp-charles-leclerc-helmet",
+      "set_number": "72167",
+      "name": "LEGO® Pokemon SMART Play: Charizard vs. Jolteon Ultimate Battle 72167",
+      "price_aud": 159.0,
+      "product_url": "https://www.target.com.au/p/lego-pokemon-smart-play-charizard-vs-jolteon-ultimate-battle-72167/73174110",
+      "rrp_aud": 199.99,
+      "discount_percent": 20.5,
+      "rrp_url": "/products/lego-pokemon-smart-play-charizard-vs-jolteon-ultimate-battle",
       "rrp_source": "Bricks Megastore listing price",
       "verified": true,
       "stock_status": "unknown"

@@ -1,16 +1,16 @@
 {
   "status": "incomplete",
-  "generated_at": "2026-11-14T22:07:30.046041+00:00",
-  "products_checked": 1257,
-  "verified_products": 837,
-  "qualifying_deals": 18,
+  "generated_at": "2026-11-15T09:51:56.068796+00:00",
+  "products_checked": 1217,
+  "verified_products": 737,
+  "qualifying_deals": 15,
   "retailers": {
     "myer": {
       "name": "Myer",
-      "product_urls_discovered": 393,
-      "products_with_prices_checked": 393,
-      "verified_products": 218,
-      "qualifying_deals": 10,
+      "product_urls_discovered": 389,
+      "products_with_prices_checked": 389,
+      "verified_products": 186,
+      "qualifying_deals": 7,
       "status": "complete",
       "errors": [],
       "no_data": false
@@ -23,7 +23,7 @@
       "qualifying_deals": 0,
       "status": "incomplete",
       "errors": [
-        "BIG W data API failed: HTTP 401",
+        "BIG W data API failed: RuntimeError",
         "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)"
       ],
       "no_data": true
@@ -32,7 +32,7 @@
       "name": "Target",
       "product_urls_discovered": 493,
       "products_with_prices_checked": 490,
-      "verified_products": 245,
+      "verified_products": 213,
       "qualifying_deals": 8,
       "status": "complete",
       "errors": [],
@@ -53,8 +53,8 @@
     "bricksmegastore": {
       "name": "Bricks Megastore",
       "product_urls_discovered": 463,
-      "products_with_prices_checked": 374,
-      "verified_products": 374,
+      "products_with_prices_checked": 338,
+      "verified_products": 338,
       "qualifying_deals": 0,
       "status": "complete",
       "errors": [],
@@ -109,7 +109,7 @@
   ],
   "message": "Only independently verified retailer prices and matching Australian LEGO RRPs qualify as deals.",
   "errors": [
-    "BIG W data API failed: HTTP 401",
+    "BIG W data API failed: RuntimeError",
     "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)",
     "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
     "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego).",
