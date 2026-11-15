@@ -183,27 +183,26 @@ def get(url: str) -> str:
 
     # Browser rendering can help with slow or JS-rendered public pages. It does not
     # attempt to bypass CAPTCHAs, authentication, or access-denied responses.
+    print(f"Trying normal browser rendering for {url} after {format_error(last_error)}.")
     try:
-        print(f"Trying normal browser rendering for {url} after {format_error(last_error)}.")
-        try:
-            return browser_get(url)
-        except Exception as browser_exc:
-            # BIG W has returned ERR_HTTP2_PROTOCOL_ERROR from GitHub Actions.
-            # Retry the same public page over HTTP/1.1-compatible Chromium mode.
-            if "bigw.com.au" in url.lower() and "ERR_HTTP2_PROTOCOL_ERROR" in str(browser_exc):
-                try:
-                    print(f"Retrying BIG W page with Chromium HTTP/2 disabled: {url}")
-                    return browser_get(url, disable_http2=True)
-                except Exception as retry_exc:
-                    raise RuntimeError(
-                        f"requests failed ({format_error(last_error)}); "
-                        f"browser fallback failed ({format_error(browser_exc)}); "
-                        f"HTTP/2-disabled retry failed ({format_error(retry_exc)})"
-                    ) from retry_exc
-            raise RuntimeError(
-                f"requests failed ({format_error(last_error)}); "
-                f"browser fallback failed ({format_error(browser_exc)})"
-            ) from browser_exc
+        return browser_get(url)
+    except Exception as browser_exc:
+        # BIG W has returned ERR_HTTP2_PROTOCOL_ERROR from GitHub Actions.
+        # Retry the same public page over HTTP/2-disabled Chromium mode.
+        if "bigw.com.au" in url.lower() and "ERR_HTTP2_PROTOCOL_ERROR" in str(browser_exc):
+            try:
+                print(f"Retrying BIG W page with Chromium HTTP/2 disabled: {url}")
+                return browser_get(url, disable_http2=True)
+            except Exception as retry_exc:
+                raise RuntimeError(
+                    f"requests failed ({format_error(last_error)}); "
+                    f"browser fallback failed ({format_error(browser_exc)}); "
+                    f"HTTP/2-disabled retry failed ({format_error(retry_exc)})"
+                ) from retry_exc
+        raise RuntimeError(
+            f"requests failed ({format_error(last_error)}); "
+            f"browser fallback failed ({format_error(browser_exc)})"
+        ) from browser_exc
 
 
 def jsonld_objects(soup: BeautifulSoup):
