@@ -331,7 +331,7 @@ def _bigw_card_price(card):
                 or node.get("aria-label")
                 or node.get_text(" ", strip=True)
             )
-            match = re.search(r"\$\\s*(\\d{1,4}(?:,\\d{3})*(?:\\.\\d{1,2})?)", str(raw))
+            match = re.search(r"\$\s*(\d{1,4}(?:,\d{3})*(?:\.\d{1,2})?)", str(raw))
             if match:
                 try:
                     amount = float(match.group(1).replace(",", ""))
@@ -343,7 +343,7 @@ def _bigw_card_price(card):
     # BIG W product cards normally place the current price before any
     # "Originally $X" or "Save $X" promotional text.
     text = card.get_text(" ", strip=True)
-    match = re.search(r"\$\\s*(\\d{1,4}(?:,\\d{3})*(?:\\.\\d{1,2})?)", text)
+    match = re.search(r"\$\s*(\d{1,4}(?:,\d{3})*(?:\.\d{1,2})?)", text)
     if match:
         try:
             amount = float(match.group(1).replace(",", ""))
@@ -364,14 +364,14 @@ def _bigw_card_name(anchor, card):
         candidate = re.sub(r"\s+", " ", candidate).strip()
         if candidate and "lego" in candidate.lower():
             # Remove common trailing price/promotion text from the card label.
-            candidate = re.split(r"\s+\\$\\s*\\d", candidate, maxsplit=1)[0].strip()
+            candidate = re.split(r"\s+\$\s*\d", candidate, maxsplit=1)[0].strip()
             return candidate
 
-    text = card.get_text("\\n", strip=True)
+    text = card.get_text("\n", strip=True)
     for line in text.splitlines():
         line = re.sub(r"\s+", " ", line).strip()
         if "lego" in line.lower() and len(line) > 8:
-            return re.split(r"\s+\\$\\s*\\d", line, maxsplit=1)[0].strip()
+            return re.split(r"\s+\$\s*\d", line, maxsplit=1)[0].strip()
     return ""
 
 
