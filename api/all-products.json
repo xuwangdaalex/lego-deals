@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T11:21:22.199691+00:00",
+  "generated_at": "2026-11-15T11:37:41.570467+00:00",
   "currency": "AUD",
   "coverage": {
     "complete": false,
@@ -67,7 +67,7 @@
         "qualifying_deals": 0,
         "status": "incomplete",
         "errors": [
-          "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (997 bytes) (https://www.davidjones.com/brand/lego)",
+          "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (995 bytes) (https://www.davidjones.com/brand/lego)",
           "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego)."
         ],
         "no_data": true
@@ -112,7 +112,7 @@
     "errors": [
       "BIG W catalogue page 1: RuntimeError: requests failed (ReadTimeout/ConnectTimeout); browser retries failed (TimeoutError: Page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101\", waiting until \"commit\"\n; Error: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.bigw.com.au/toys/lego/c/6822101\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101\", waiting until \"co) (https://www.bigw.com.au/toys/lego/c/6822101)",
       "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
-      "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (997 bytes) (https://www.davidjones.com/brand/lego)",
+      "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (995 bytes) (https://www.davidjones.com/brand/lego)",
       "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego).",
       "EB Games catalogue page 1: HTTP 403 (https://www.ebgames.com.au/featured/lego)"
     ]
