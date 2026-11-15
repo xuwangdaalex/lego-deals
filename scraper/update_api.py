@@ -309,154 +309,213 @@ def extract_product_data(url: str, retailer_key: str | None = None):
     return data
 
 
-# BIG W's public catalogue HTML is intermittently blocked in GitHub Actions.
-# This independently operated scraper API exposes the same public category data.
+# BIG W catalogue product data is cached from the public category HTML.
+# The third-party Big W Scraper API is intentionally not used.
 _BIGW_PRODUCT_CACHE = {}
 
-def discover_bigw_via_api():
-    """Fetch BIG W LEGO listings from the public Big W Scraper API.
 
-    The API documents category, brand and search endpoints. Try these routes in
-    order because the service may change or temporarily restrict one route.
-    """
-    products = []
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/130.0.0.0 Safari/537.36"
-        ),
-        "Accept": "application/json, text/plain, */*",
-        "Origin": "https://www.omkar.cloud",
-        "Referer": "https://www.omkar.cloud/tools/big-w-scraper/category-products",
-    }
-    base = "https://big-w-scraper.omkar.cloud/big-w"
-    routes = [
-        (
-            "category",
-            f"{base}/categories/products",
-            {"category": "6822101", "brand": "LEGO", "sold_by": "bigw",
-             "page": 1, "limit": 48, "state": "NSW"},
-        ),
-        (
-            "brand",
-            f"{base}/brands/products",
-            {"brand": "LEGO", "category": "6822101", "sold_by": "bigw",
-             "page": 1, "limit": 48, "state": "NSW"},
-        ),
-        (
-            "search",
-            f"{base}/products/search",
-            {"query": "lego", "category": "6822101", "brand": "LEGO",
-             "sold_by": "bigw", "page": 1, "limit": 48, "state": "NSW"},
-        ),
-    ]
+def _bigw_card_price(card):
+    """Extract the displayed BIG W price from a product-card fragment."""
+    # Prefer explicit price metadata or price-labelled elements.
+    selectors = (
+        '[itemprop="price"]',
+        '[data-testid*="price"]',
+        '[class*="price"]',
+        '[aria-label*="$"]',
+    )
+    for selector in selectors:
+        for node in card.select(selector):
+            raw = (
+                node.get("content")
+                or node.get("value")
+                or node.get("aria-label")
+                or node.get_text(" ", strip=True)
+            )
+            match = re.search(r"\$\\s*(\\d{1,4}(?:,\\d{3})*(?:\\.\\d{1,2})?)", str(raw))
+            if match:
+                try:
+                    amount = float(match.group(1).replace(",", ""))
+                    if amount > 0:
+                        return amount
+                except ValueError:
+                    pass
 
-    last_error = None
-    selected_route = None
-    first_payload = None
-    for route_name, endpoint, params in routes:
+    # BIG W product cards normally place the current price before any
+    # "Originally $X" or "Save $X" promotional text.
+    text = card.get_text(" ", strip=True)
+    match = re.search(r"\\$\\s*(\\d{1,4}(?:,\\d{3})*(?:\\.\\d{1,2})?)", text)
+    if match:
         try:
-            response = session().get(
-                endpoint, params=params, headers=headers,
-                timeout=(CONNECT_TIMEOUT, READ_TIMEOUT),
-            )
-            response.raise_for_status()
-            payload = response.json()
-            if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
-                raise ValueError("BIG W API response did not contain a results list")
-            selected_route = (route_name, endpoint, params)
-            first_payload = payload
-            print(f"BIG W API: using {route_name} endpoint.")
+            amount = float(match.group(1).replace(",", ""))
+            return amount if amount > 0 else None
+        except ValueError:
+            return None
+    return None
+
+
+def _bigw_card_name(anchor, card):
+    candidates = [
+        anchor.get("aria-label", ""),
+        anchor.get("title", ""),
+        " ".join(img.get("alt", "") for img in anchor.select("img")),
+        anchor.get_text(" ", strip=True),
+    ]
+    for candidate in candidates:
+        candidate = re.sub(r"\\s+", " ", candidate).strip()
+        if candidate and "lego" in candidate.lower():
+            # Remove common trailing price/promotion text from the card label.
+            candidate = re.split(r"\\s+\\$\\s*\\d", candidate, maxsplit=1)[0].strip()
+            return candidate
+
+    text = card.get_text("\\n", strip=True)
+    for line in text.splitlines():
+        line = re.sub(r"\\s+", " ", line).strip()
+        if "lego" in line.lower() and len(line) > 8:
+            return re.split(r"\\s+\\$\\s*\\d", line, maxsplit=1)[0].strip()
+    return ""
+
+
+def _bigw_card_fragment(anchor):
+    """Return the nearest useful product-card ancestor without walking the page."""
+    node = anchor
+    best = anchor
+    for _ in range(6):
+        if node is None or getattr(node, "name", None) in ("body", "html"):
             break
+        text = node.get_text(" ", strip=True)
+        if text and ("$" in text or node.select_one('[itemprop="price"]')):
+            best = node
+            # Prefer a compact card rather than a large grid/list container.
+            if len(text) < 1400:
+                return node
+        node = node.parent
+    return best
+
+
+def discover_bigw_from_catalogue():
+    """Read BIG W's public LEGO category HTML and follow its page=N pagination."""
+    config = RETAILERS["bigw"]
+    urls = []
+    errors = []
+    seen_pages = set()
+    page_limit = min(config.get("max_pages", 11), 20)
+
+    for page in range(1, page_limit + 1):
+        page_url = config["category"] if page == 1 else f'{config["category"]}?page={page}'
+        try:
+            html = get_bigw_catalogue_page(page_url)
         except Exception as exc:
-            last_error = exc
-            print(f"BIG W API {route_name} endpoint failed: {format_error(exc)}")
-            # A 401/403 is an access denial for this host, not a bad query.
-            # Stop probing sibling endpoints and use BIG W's own public catalogue.
-            if isinstance(exc, requests.exceptions.HTTPError) and exc.response is not None:
-                if exc.response.status_code in (401, 403):
-                    break
-
-    if first_payload is None:
-        raise RuntimeError(
-            f"all documented BIG W API endpoints failed "
-            f"(last error: {format_error(last_error)})"
-        ) from last_error
-
-    route_name, endpoint, base_params = selected_route
-    total_pages = int(first_payload.get("total_pages") or 1)
-    total_pages = min(total_pages, 20)
-
-    for page in range(1, total_pages + 1):
-        payload = first_payload if page == 1 else None
-        if payload is None:
-            params = dict(base_params)
-            params["page"] = page
-            response = session().get(
-                endpoint, params=params, headers=headers,
-                timeout=(CONNECT_TIMEOUT, READ_TIMEOUT),
+            errors.append(
+                f'BIG W catalogue page {page}: {format_error(exc)} ({page_url})'
             )
+            break
+
+        soup = BeautifulSoup(html, "html.parser")
+        page_urls = []
+        for anchor in soup.select("a[href]"):
+            href = urljoin(page_url, anchor.get("href", "").strip())
+            parsed = urlparse(href)
+            host = parsed.netloc.lower().removeprefix("www.")
+            path = parsed.path.lower()
+            if not host.endswith(config["host"]) or "/product/" not in path:
+                continue
+
+            product_url = href.split("?")[0].rstrip("/")
+            card = _bigw_card_fragment(anchor)
+            card_text = card.get_text(" ", strip=True)
+            name = _bigw_card_name(anchor, card)
+            combined = " ".join((name, card_text, path))
+            number = set_number(combined)
+            if "lego" not in combined.lower() and not number:
+                continue
+
+            price = _bigw_card_price(card)
+            if price is not None:
+                _BIGW_PRODUCT_CACHE[product_url] = {
+                    "name": name or f"LEGO set {number or ''}".strip(),
+                    "url": product_url,
+                    "sku": number or "",
+                    "price_aud": price,
+                    "currency": "AUD",
+                    "stock_status": (
+                        "out_of_stock"
+                        if re.search(r"out of stock|unavailable", card_text, re.I)
+                        else "unknown"
+                    ),
+                    "data_source": "BIG W public catalogue HTML",
+                }
+            page_urls.append(product_url)
+
+        page_urls = list(dict.fromkeys(page_urls))
+        if not page_urls:
+            if page == 1:
+                errors.append(
+                    f"BIG W catalogue returned no LEGO product links in page HTML ({page_url})."
+                )
+            break
+
+        signature = tuple(page_urls)
+        if signature in seen_pages:
+            break
+        seen_pages.add(signature)
+        urls.extend(page_urls)
+        print(
+            f"BIG W catalogue page {page}: found {len(page_urls)} products "
+            f"({len(urls)} unique URLs total; {len(_BIGW_PRODUCT_CACHE)} prices read from cards)."
+        )
+
+        if len(urls) >= MAX_PRODUCTS_PER_RETAILER:
+            urls = urls[:MAX_PRODUCTS_PER_RETAILER]
+            break
+        if len(page_urls) < 5:
+            break
+        time.sleep(0.25)
+
+    unique = list(dict.fromkeys(urls))[:MAX_PRODUCTS_PER_RETAILER]
+    print(
+        f"BIG W catalogue: discovered {len(unique)} LEGO URLs; "
+        f"cached {len(_BIGW_PRODUCT_CACHE)} catalogue prices."
+    )
+    return unique, errors
+
+
+def get_bigw_catalogue_page(url: str) -> str:
+    """Fetch BIG W's public category page; retry Chromium without HTTP/2 on protocol errors."""
+    last_error = None
+    for attempt in range(REQUEST_ATTEMPTS):
+        try:
+            response = session().get(url, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
             response.raise_for_status()
-            payload = response.json()
+            return response.text
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
+            last_error = exc
+        except requests.exceptions.HTTPError as exc:
+            status = exc.response.status_code if exc.response is not None else None
+            if status is not None and 400 <= status < 500 and status != 429:
+                raise
+            last_error = exc
+        if attempt < REQUEST_ATTEMPTS - 1:
+            time.sleep(2 ** (attempt + 1))
 
-        results = payload.get("results") or []
-        for item in results:
-            if str(item.get("brand", "")).strip().lower() != "lego":
-                continue
-            if str(item.get("sold_by", "")).strip().lower() != "big w":
-                continue
+    if sync_playwright is None:
+        raise RuntimeError(f"requests failed ({format_error(last_error)}); Playwright unavailable")
 
-            pricing = item.get("pricing") or {}
-            if str(pricing.get("currency") or "AUD").upper() != "AUD":
-                continue
-            try:
-                amount = float(pricing.get("amount"))
-            except (TypeError, ValueError):
-                continue
-            if amount <= 0:
-                continue
-
-            product_url = item.get("link")
-            if not product_url:
-                continue
-            product_url = product_url.split("?")[0].rstrip("/")
-            name = str(item.get("name") or "").strip()
-            article_id = str(item.get("id") or "")
-            _BIGW_PRODUCT_CACHE[product_url] = {
-                "name": name,
-                "url": product_url,
-                "sku": article_id,
-                "price_aud": amount,
-                "currency": "AUD",
-                "stock_status": (
-                    "in_stock" if item.get("is_in_stock") else "out_of_stock"
-                ),
-                "data_source": "BIG W listing via Big W Scraper API",
-            }
-            products.append(product_url)
-
-        if page < total_pages:
-            time.sleep(0.2)
-
-    unique = list(dict.fromkeys(products))
-    print(f"BIG W API: fetched {len(unique)} BIG W LEGO listings across {total_pages} pages.")
-    return unique
+    # BIG W has returned ERR_HTTP2_PROTOCOL_ERROR from GitHub-hosted runners.
+    # Retry using the same public page with HTTP/2 disabled, then normal Chromium.
+    browser_errors = []
+    for disable_http2 in (True, False):
+        try:
+            return browser_get(url, disable_http2=disable_http2)
+        except Exception as exc:
+            browser_errors.append(format_error(exc))
+    raise RuntimeError(
+        f"requests failed ({format_error(last_error)}); "
+        f"browser retries failed ({'; '.join(browser_errors)})"
+    ) from last_error
 
 def discover_product_urls(retailer_key: str):
-    api_fallback_error = None
     if retailer_key == "bigw":
-        try:
-            api_urls = discover_bigw_via_api()
-            if api_urls:
-                print(f"BIG W API returned {len(api_urls)} LEGO listings.")
-                return api_urls[:MAX_PRODUCTS_PER_RETAILER], []
-            api_fallback_error = "BIG W data API returned no LEGO listings."
-            print(api_fallback_error)
-        except Exception as exc:
-            api_fallback_error = f"BIG W data API failed: {format_error(exc)}"
-            print(api_fallback_error)
-            # Fall back to the retailer's own category page if the API is unavailable.
+        return discover_bigw_from_catalogue()
     config = RETAILERS[retailer_key]
     base = config["category"]
     urls, seen_pages, errors = [], set(), ([api_fallback_error] if api_fallback_error else [])
