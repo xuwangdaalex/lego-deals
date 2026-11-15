@@ -434,7 +434,7 @@ def discover_bigw_from_catalogue():
             r"viewed\s+[\d,]+\s+of\s+([\d,]+)\s+products",
             page_text,
             re.I,
-        )
+        ) if page == 1 else None
         if total_match:
             try:
                 total_products = int(total_match.group(1).replace(",", ""))
