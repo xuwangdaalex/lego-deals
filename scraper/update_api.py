@@ -431,7 +431,7 @@ def discover_bigw_from_catalogue():
         # Use it to calculate the number of pages instead of relying only on a
         # hard-coded page count. Keep the configured cap as a safety limit.
         total_match = re.search(
-            r"viewed\\s+[\\d,]+\\s+of\\s+([\\d,]+)\\s+products",
+            r"viewed\s+[\d,]+\s+of\s+([\d,]+)\s+products",
             page_text,
             re.I,
         )
