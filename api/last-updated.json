@@ -1,16 +1,16 @@
 {
   "status": "incomplete",
-  "generated_at": "2026-11-15T09:51:56.068796+00:00",
-  "products_checked": 1217,
-  "verified_products": 737,
-  "qualifying_deals": 15,
+  "generated_at": "2026-11-15T10:17:42.662556+00:00",
+  "products_checked": 1342,
+  "verified_products": 1055,
+  "qualifying_deals": 22,
   "retailers": {
     "myer": {
       "name": "Myer",
       "product_urls_discovered": 389,
       "products_with_prices_checked": 389,
-      "verified_products": 186,
-      "qualifying_deals": 7,
+      "verified_products": 278,
+      "qualifying_deals": 10,
       "status": "complete",
       "errors": [],
       "no_data": false
@@ -23,8 +23,8 @@
       "qualifying_deals": 0,
       "status": "incomplete",
       "errors": [
-        "BIG W data API failed: RuntimeError",
-        "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)"
+        "BIG W data API failed: RuntimeError: all documented BIG W API endpoints failed (last error: HTTP 401)",
+        "BIG W catalogue page 1: RuntimeError: requests failed (ReadTimeout/ConnectTimeout); browser fallback failed (Error: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.bigw.com.au/toys/lego/c/6822101\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101\", waiting until \"co) (https://www.bigw.com.au/toys/lego/c/6822101)"
       ],
       "no_data": true
     },
@@ -32,8 +32,8 @@
       "name": "Target",
       "product_urls_discovered": 493,
       "products_with_prices_checked": 490,
-      "verified_products": 213,
-      "qualifying_deals": 8,
+      "verified_products": 314,
+      "qualifying_deals": 12,
       "status": "complete",
       "errors": [],
       "no_data": false
@@ -53,8 +53,8 @@
     "bricksmegastore": {
       "name": "Bricks Megastore",
       "product_urls_discovered": 463,
-      "products_with_prices_checked": 338,
-      "verified_products": 338,
+      "products_with_prices_checked": 463,
+      "verified_products": 463,
       "qualifying_deals": 0,
       "status": "complete",
       "errors": [],
@@ -68,6 +68,7 @@
       "qualifying_deals": 0,
       "status": "incomplete",
       "errors": [
+        "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (991 bytes) (https://www.davidjones.com/brand/lego)",
         "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego)."
       ],
       "no_data": true
@@ -109,9 +110,10 @@
   ],
   "message": "Only independently verified retailer prices and matching Australian LEGO RRPs qualify as deals.",
   "errors": [
-    "BIG W data API failed: RuntimeError",
-    "BIG W catalogue page 1: RuntimeError (https://www.bigw.com.au/toys/lego/c/6822101)",
+    "BIG W data API failed: RuntimeError: all documented BIG W API endpoints failed (last error: HTTP 401)",
+    "BIG W catalogue page 1: RuntimeError: requests failed (ReadTimeout/ConnectTimeout); browser fallback failed (Error: Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.bigw.com.au/toys/lego/c/6822101\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101\", waiting until \"co) (https://www.bigw.com.au/toys/lego/c/6822101)",
     "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
+    "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (991 bytes) (https://www.davidjones.com/brand/lego)",
     "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego).",
     "EB Games catalogue page 1: HTTP 403 (https://www.ebgames.com.au/featured/lego)"
   ]
