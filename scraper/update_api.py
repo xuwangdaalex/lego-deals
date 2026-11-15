@@ -103,12 +103,17 @@ def session():
 
 
 def format_error(exc: Exception) -> str:
-    """Return useful diagnostics without dumping a full response body."""
+    """Return actionable diagnostics while keeping response bodies out of logs."""
     if isinstance(exc, requests.exceptions.HTTPError) and exc.response is not None:
         return f"HTTP {exc.response.status_code}"
     if isinstance(exc, requests.exceptions.Timeout):
         return "ReadTimeout/ConnectTimeout"
-    return type(exc).__name__
+    if isinstance(exc, RuntimeError):
+        detail = str(exc).strip()
+        return f"RuntimeError: {detail}" if detail else "RuntimeError"
+    if isinstance(exc, requests.exceptions.RequestException):
+        return f"{type(exc).__name__}: {str(exc)[:180]}"
+    return f"{type(exc).__name__}: {str(exc)[:180]}" if str(exc) else type(exc).__name__
 
 
 def browser_get(url: str) -> str:
