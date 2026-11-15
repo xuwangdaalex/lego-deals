@@ -51,9 +51,8 @@ RETAILERS = {
         "host": "bigw.com.au",
         "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
         "product_path": ("/product/",),
-        # BIG W exposes a large first batch and a separate "Load more" control;
-        # avoid guessing unsupported ?page=N URLs which can trigger slow requests.
-        "max_pages": 1,
+        # BIG W's category supports ?page=N pagination (48 products per page).
+        "max_pages": 11,
     },
     "target": {
         "name": "Target",
@@ -117,17 +116,36 @@ def format_error(exc: Exception) -> str:
 
 
 def browser_get(url: str) -> str:
-    """Render a public page with a normal headless browser when requests cannot render it."""
+    """Render a public page with Chromium without waiting for every network request."""
     if sync_playwright is None:
         raise RuntimeError("Playwright is not installed")
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         try:
-            page = browser.new_page(locale="en-AU")
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            # Allow client-side catalogue/product data to populate.
+            page = browser.new_page(
+                locale="en-AU",
+                user_agent=(
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+                ),
+            )
+            response = page.goto(url, wait_until="commit", timeout=60000)
+            status = response.status if response is not None else None
+            if status is not None and status in (401, 403):
+                raise RuntimeError(f"browser received HTTP {status}")
+            # Some retail pages keep analytics or recommendation requests open.
+            # Wait briefly for the main document and client-rendered product cards.
+            try:
+                page.wait_for_load_state("domcontentloaded", timeout=15000)
+            except Exception:
+                pass
             page.wait_for_timeout(2500)
-            return page.content()
+            html = page.content()
+            if len(html) < 1000:
+                raise RuntimeError(
+                    f"browser returned an unexpectedly short page ({len(html)} bytes)"
+                )
+            return html
         finally:
             browser.close()
 
@@ -333,6 +351,11 @@ def discover_bigw_via_api():
         except Exception as exc:
             last_error = exc
             print(f"BIG W API {route_name} endpoint failed: {format_error(exc)}")
+            # A 401/403 is an access denial for this host, not a bad query.
+            # Stop probing sibling endpoints and use BIG W's own public catalogue.
+            if isinstance(exc, requests.exceptions.HTTPError) and exc.response is not None:
+                if exc.response.status_code in (401, 403):
+                    break
 
     if first_payload is None:
         raise RuntimeError(
