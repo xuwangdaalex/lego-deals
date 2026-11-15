@@ -402,7 +402,8 @@ def discover_product_urls(retailer_key: str):
             if api_urls:
                 print(f"BIG W API returned {len(api_urls)} LEGO listings.")
                 return api_urls[:MAX_PRODUCTS_PER_RETAILER], []
-            return [], ["BIG W data API returned no LEGO listings."]
+            api_fallback_error = "BIG W data API returned no LEGO listings."
+            print(api_fallback_error)
         except Exception as exc:
             api_fallback_error = f"BIG W data API failed: {format_error(exc)}"
             print(api_fallback_error)
