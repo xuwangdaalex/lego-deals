@@ -49,9 +49,11 @@ RETAILERS = {
         "name": "BIG W",
         "category": "https://www.bigw.com.au/toys/lego/c/6822101",
         "host": "bigw.com.au",
-        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}",
+        "page_url": lambda base, n: base if n == 1 else f"{base}?page={n}&pp=1",
         "product_path": ("/product/",),
-        # BIG W's category supports ?page=N pagination (48 products per page).
+        # BIG W's public "Load more" pagination uses page=N (48 products per page).
+        # pp=1 matches the paginated catalogue URLs returned by BIG W.
+        "products_per_page": 48,
         "max_pages": 11,
     },
     "target": {
@@ -400,8 +402,9 @@ def discover_bigw_from_catalogue():
     page_limit = min(config.get("max_pages", 11), 20)
     consecutive_fetch_failures = 0
 
-    for page in range(1, page_limit + 1):
-        page_url = config["category"] if page == 1 else f'{config["category"]}?page={page}'
+    page = 1
+    while page <= page_limit:
+        page_url = config["page_url"](config["category"], page)
         try:
             html = get_bigw_catalogue_page(page_url)
         except Exception as exc:
@@ -418,10 +421,32 @@ def discover_bigw_from_catalogue():
                     "the retailer host appears unreachable from this GitHub Actions runner."
                 )
                 break
+            page += 1
             continue
 
         consecutive_fetch_failures = 0
         soup = BeautifulSoup(html, "html.parser")
+        page_text = soup.get_text(" ", strip=True)
+        # BIG W shows a catalogue counter such as "You've viewed 48 of 492 products".
+        # Use it to calculate the number of pages instead of relying only on a
+        # hard-coded page count. Keep the configured cap as a safety limit.
+        total_match = re.search(
+            r"viewed\\s+[\\d,]+\\s+of\\s+([\\d,]+)\\s+products",
+            page_text,
+            re.I,
+        )
+        if total_match:
+            try:
+                total_products = int(total_match.group(1).replace(",", ""))
+                per_page = config.get("products_per_page", 48)
+                detected_pages = (total_products + per_page - 1) // per_page
+                page_limit = min(max(page_limit, detected_pages), 20)
+                print(
+                    f"BIG W catalogue reports {total_products} products; "
+                    f"checking up to {page_limit} pages."
+                )
+            except (TypeError, ValueError):
+                pass
         page_urls = []
         for anchor in soup.select("a[href]"):
             href = urljoin(page_url, anchor.get("href", "").strip())
@@ -464,6 +489,7 @@ def discover_bigw_from_catalogue():
             )
             # Do not assume an empty/partially rendered page means later pages
             # are empty too; continue to the next page number.
+            page += 1
             continue
 
         signature = tuple(page_urls)
@@ -483,6 +509,7 @@ def discover_bigw_from_catalogue():
         # sometimes serves partially rendered catalogue HTML; later pages may
         # still contain valid product cards.
         time.sleep(0.25)
+        page += 1
 
     unique = list(dict.fromkeys(urls))[:MAX_PRODUCTS_PER_RETAILER]
     print(
