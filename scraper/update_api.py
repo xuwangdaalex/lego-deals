@@ -479,38 +479,74 @@ def discover_bigw_from_catalogue():
 
 
 def get_bigw_catalogue_page(url: str) -> str:
-    """Fetch BIG W's public category page; retry Chromium without HTTP/2 on protocol errors."""
-    last_error = None
-    for attempt in range(REQUEST_ATTEMPTS):
-        try:
-            response = session().get(url, timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
-            response.raise_for_status()
-            return response.text
-        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
-            last_error = exc
-        except requests.exceptions.HTTPError as exc:
-            status = exc.response.status_code if exc.response is not None else None
-            if status is not None and 400 <= status < 500 and status != 429:
-                raise
-            last_error = exc
-        if attempt < REQUEST_ATTEMPTS - 1:
-            time.sleep(2 ** (attempt + 1))
+    """Fetch BIG W's public catalogue HTML using its category and canonical URL forms.
+
+    The canonical /c/<category-id> route is also published by BIG W and can
+    behave differently from the longer /toys/... route at the CDN edge.
+    """
+    parsed = urlparse(url)
+    category_id = parsed.path.rstrip("/").split("/")[-1]
+    candidates = [url]
+    if category_id.isdigit():
+        canonical = f"https://www.bigw.com.au/c/{category_id}"
+        if parsed.query:
+            canonical = f"{canonical}?{parsed.query}"
+        if canonical not in candidates:
+            candidates.append(canonical)
+
+    errors = []
+    for candidate in candidates:
+        last_error = None
+        # Keep each network attempt bounded so a dead route does not consume
+        # most of the scheduled workflow's runtime.
+        for attempt in range(2):
+            try:
+                response = session().get(
+                    candidate,
+                    timeout=(8, 25),
+                    headers={
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                        "Referer": "https://www.bigw.com.au/",
+                    },
+                )
+                response.raise_for_status()
+                if len(response.text) < 1000:
+                    raise RuntimeError(
+                        f"BIG W returned an unexpectedly short catalogue page ({len(response.text)} bytes)"
+                    )
+                return response.text
+            except requests.exceptions.HTTPError as exc:
+                status = exc.response.status_code if exc.response is not None else None
+                if status is not None and 400 <= status < 500 and status != 429:
+                    errors.append(f"{candidate}: {format_error(exc)}")
+                    break
+                last_error = exc
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
+                last_error = exc
+            if attempt == 0:
+                time.sleep(2)
+
+        if last_error is not None:
+            errors.append(f"{candidate}: {format_error(last_error)}")
 
     if sync_playwright is None:
-        raise RuntimeError(f"requests failed ({format_error(last_error)}); Playwright unavailable")
+        raise RuntimeError(
+            f"direct catalogue requests failed ({'; '.join(errors)}); Playwright unavailable"
+        )
 
-    # BIG W has returned ERR_HTTP2_PROTOCOL_ERROR from GitHub-hosted runners.
-    # Retry using the same public page with HTTP/2 disabled, then normal Chromium.
+    # Try Chromium over HTTP/2-disabled transport first; do not use third-party
+    # scraping services or attempt to bypass authentication/access controls.
     browser_errors = []
-    for disable_http2 in (True, False):
+    for candidate in candidates:
         try:
-            return browser_get(url, disable_http2=disable_http2)
+            return browser_get(candidate, disable_http2=True)
         except Exception as exc:
-            browser_errors.append(format_error(exc))
+            browser_errors.append(f"{candidate}: {format_error(exc)}")
+
     raise RuntimeError(
-        f"requests failed ({format_error(last_error)}); "
+        f"direct catalogue requests failed ({'; '.join(errors)}); "
         f"browser retries failed ({'; '.join(browser_errors)})"
-    ) from last_error
+    )
 
 def discover_product_urls(retailer_key: str):
     if retailer_key == "bigw":
