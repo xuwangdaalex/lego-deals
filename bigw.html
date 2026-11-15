@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BIG W LEGO Catalogue | LEGO Deals Australia</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#657084; --line:#e4e8ef; --bg:#f5f7fb; --blue:#1456c0; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    header { background:#fff; border-bottom:1px solid var(--line); padding:28px max(20px,calc((100% - 1180px)/2)); }
+    h1 { margin:0 0 5px; font-size:clamp(25px,4vw,34px); }
+    p { margin:5px 0; }
+    .muted { color:var(--muted); }
+    main { max-width:1180px; margin:24px auto; padding:0 18px 48px; }
+    .toolbar,.stats,.panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:18px; }
+    .toolbar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    button,.link { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:9px; padding:10px 15px; font:inherit; font-weight:650; text-decoration:none; cursor:pointer; }
+    button { color:white; background:var(--blue); }
+    button:disabled { opacity:.6; cursor:wait; }
+    .link { color:var(--blue); background:#edf3ff; }
+    .stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+    .stat strong { display:block; font-size:25px; }
+    .stat span { color:var(--muted); font-size:13px; }
+    .notice { border:1px solid #f0d69a; background:#fff9e9; border-radius:12px; padding:14px 16px; margin-bottom:16px; }
+    .filters { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
+    input,select { border:1px solid var(--line); border-radius:9px; padding:10px 12px; font:inherit; background:#fff; }
+    input { flex:1; min-width:220px; }
+    .panel { overflow:hidden; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:720px; }
+    th,td { text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+    td.price,td.discount { white-space:nowrap; font-variant-numeric:tabular-nums; }
+    .discount { color:#087443; font-weight:700; }
+    .empty { padding:30px 12px; text-align:center; color:var(--muted); }
+    .status { font-size:13px; color:var(--muted); }
+    footer { text-align:center; color:var(--muted); font-size:12px; padding:24px; }
+    @media(max-width:600px) { .stats { grid-template-columns:1fr 1fr; } .stats .stat:last-child { grid-column:1/-1; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>BIG W LEGO Catalogue</h1>
+  <p class="muted">A separate view of BIG W products collected by the LEGO Deals API.</p>
+</header>
+<main>
+  <section class="toolbar">
+    <div>
+      <strong>BIG W product data</strong>
+      <div class="status" id="updated">Loading the latest published data…</div>
+    </div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button id="refresh" type="button">Refresh data</button>
+      <a class="link" href="https://www.bigw.com.au/toys/lego/c/6822101" target="_blank" rel="noopener">Open BIG W catalogue ↗</a>
+    </div>
+  </section>
+
+  <div class="notice" id="notice">
+    <strong>How this page works</strong>
+    <p>This page reads BIG W products from the published LEGO Deals JSON. It does not scrape BIG W directly in your browser: BIG W's site restricts cross-site page access, and the GitHub Actions runner has recently timed out connecting to its catalogue. The BIG W catalogue link opens the retailer's live page separately.</p>
+  </div>
+
+  <section class="stats" aria-label="Catalogue summary">
+    <div class="stat"><strong id="count">—</strong><span>BIG W products in feed</span></div>
+    <div class="stat"><strong id="deals">—</strong><span>Deals at least 20% off</span></div>
+    <div class="stat"><strong id="coverage">—</strong><span>Scraper status</span></div>
+  </section>
+
+  <div class="filters">
+    <input id="search" type="search" placeholder="Search product name or set number…" aria-label="Search products">
+    <select id="sort" aria-label="Sort products">
+      <option value="discount">Highest discount</option>
+      <option value="price-low">Price: low to high</option>
+      <option value="price-high">Price: high to low</option>
+      <option value="name">Product name</option>
+    </select>
+  </div>
+
+  <section class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>LEGO product</th><th>Set number</th><th>BIG W price</th><th>Reference price</th><th>Discount</th></tr></thead>
+        <tbody id="products"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div id="empty" class="empty" hidden>No BIG W products are currently available in the published feed.</div>
+  </section>
+  <p class="status" id="errors" style="margin-top:12px"></p>
+</main>
+<footer>Data source: this project's published API. Prices and availability may change on BIG W.</footer>
+<script>
+(() => {
+  const API = './api/all-products.json';
+  let products = [];
+  let coverage = null;
+  const $ = id => document.getElementById(id);
+  const money = value => Number.isFinite(Number(value)) ? new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'}).format(Number(value)) : '—';
+  function render() {
+    const query = $('search').value.trim().toLowerCase();
+    const sort = $('sort').value;
+    const rows = products.filter(p => [p.name,p.set_number].join(' ').toLowerCase().includes(query));
+    rows.sort((a,b) => sort === 'price-low' ? (a.price_aud||0)-(b.price_aud||0)
+      : sort === 'price-high' ? (b.price_aud||0)-(a.price_aud||0)
+      : sort === 'name' ? (a.name||'').localeCompare(b.name||'')
+      : (b.discount_percent||0)-(a.discount_percent||0));
+    $('products').innerHTML = rows.map(p => {
+      const name = String(p.name || 'LEGO product').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      const set = String(p.set_number || '—').replace(/[&<>"]/g, '');
+      const url = /^https?:\/\//i.test(p.product_url || '') ? p.product_url : '';
+      const title = url ? '<a href="' + url.replace(/"/g,'%22') + '" target="_blank" rel="noopener">' + name + '</a>' : name;
+      return '<tr><td>' + title + '</td><td>' + set + '</td><td class="price">' + money(p.price_aud) + '</td><td class="price">' + money(p.rrp_aud) + '</td><td class="discount">' + (Number.isFinite(Number(p.discount_percent)) ? Number(p.discount_percent).toFixed(1) + '%' : '—') + '</td></tr>';
+    }).join('');
+    $('empty').hidden = rows.length !== 0;
+    $('products').parentElement.parentElement.style.display = rows.length ? '' : 'none';
+  }
+  async function load() {
+    $('refresh').disabled = true;
+    $('updated').textContent = 'Refreshing published JSON…';
+    try {
+      const response = await fetch(API + '?_=' + Date.now(), {cache:'no-store'});
+      if (!response.ok) throw new Error('API request failed: HTTP ' + response.status);
+      const data = await response.json();
+      products = (data.products || []).filter(p => p.retailer === 'bigw');
+      coverage = data.coverage && data.coverage.retailers ? data.coverage.retailers.bigw : null;
+      $('count').textContent = products.length;
+      $('deals').textContent = products.filter(p => Number(p.discount_percent) >= 20).length;
+      $('coverage').textContent = coverage ? coverage.status : 'Unknown';
+      $('updated').textContent = 'API generated: ' + (data.generated_at ? new Date(data.generated_at).toLocaleString('en-AU') : 'date unavailable');
+      $('errors').textContent = coverage && coverage.errors && coverage.errors.length ? 'Latest scraper message: ' + coverage.errors.join(' | ') : '';
+      $('notice').style.display = products.length ? 'none' : '';
+      render();
+    } catch (error) {
+      $('updated').textContent = error.message;
+      $('coverage').textContent = 'Unavailable';
+      $('products').innerHTML = '<tr><td colspan="5" class="empty">Could not load the published API. Please try again later.</td></tr>';
+    } finally {
+      $('refresh').disabled = false;
+    }
+  }
+  $('refresh').addEventListener('click', load);
+  $('search').addEventListener('input', render);
+  $('sort').addEventListener('change', render);
+  load();
+})();
+</script>
+</body>
+</html>
