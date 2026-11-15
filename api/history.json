@@ -83,6 +83,13 @@
       "products_checked": 1341,
       "verified_products": 1055,
       "qualifying_deals": 22
+    },
+    {
+      "generated_at": "2026-11-15T12:18:43.295674+00:00",
+      "status": "incomplete",
+      "products_checked": 1339,
+      "verified_products": 1054,
+      "qualifying_deals": 95
     }
   ]
 }
