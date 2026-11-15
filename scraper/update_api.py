@@ -407,7 +407,10 @@ def discover_bigw_from_catalogue():
             errors.append(
                 f'BIG W catalogue page {page}: {format_error(exc)} ({page_url})'
             )
-            break
+            # A single page can fail at BIG W's CDN while later pages remain
+            # available. Keep checking the remaining page numbers rather than
+            # abandoning the whole catalogue at the first transient failure.
+            continue
 
         soup = BeautifulSoup(html, "html.parser")
         page_urls = []
@@ -447,11 +450,12 @@ def discover_bigw_from_catalogue():
 
         page_urls = list(dict.fromkeys(page_urls))
         if not page_urls:
-            if page == 1:
-                errors.append(
-                    f"BIG W catalogue returned no LEGO product links in page HTML ({page_url})."
-                )
-            break
+            errors.append(
+                f"BIG W catalogue page {page} contained no LEGO product links ({page_url})."
+            )
+            # Do not assume an empty/partially rendered page means later pages
+            # are empty too; continue to the next page number.
+            continue
 
         signature = tuple(page_urls)
         if signature in seen_pages:
@@ -466,8 +470,9 @@ def discover_bigw_from_catalogue():
         if len(urls) >= MAX_PRODUCTS_PER_RETAILER:
             urls = urls[:MAX_PRODUCTS_PER_RETAILER]
             break
-        if len(page_urls) < 5:
-            break
+        # Do not stop just because a page yielded only a few cards. BIG W
+        # sometimes serves partially rendered catalogue HTML; later pages may
+        # still contain valid product cards.
         time.sleep(0.25)
 
     unique = list(dict.fromkeys(urls))[:MAX_PRODUCTS_PER_RETAILER]
