@@ -270,51 +270,129 @@ def extract_product_data(url: str, retailer_key: str | None = None):
 _BIGW_PRODUCT_CACHE = {}
 
 def discover_bigw_via_api():
-    """Fetch BIG W LEGO listings through a documented third-party data endpoint."""
+    """Fetch BIG W LEGO listings from the public Big W Scraper API.
+
+    The API documents category, brand and search endpoints. Try these routes in
+    order because the service may change or temporarily restrict one route.
+    """
     products = []
-    base = "https://big-w-scraper.omkar.cloud/big-w/categories/products"
-    for page in range(1, 50):
-        endpoint = f"{base}?category=6822101&page={page}&limit=100&state=NSW"
-        payload = json.loads(get(endpoint))
-        results = payload.get("results") or []
-        if not results:
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/130.0.0.0 Safari/537.36"
+        ),
+        "Accept": "application/json, text/plain, */*",
+        "Origin": "https://www.omkar.cloud",
+        "Referer": "https://www.omkar.cloud/tools/big-w-scraper/category-products",
+    }
+    base = "https://big-w-scraper.omkar.cloud/big-w"
+    routes = [
+        (
+            "category",
+            f"{base}/categories/products",
+            {"category": "6822101", "brand": "LEGO", "sold_by": "bigw",
+             "page": 1, "limit": 48, "state": "NSW"},
+        ),
+        (
+            "brand",
+            f"{base}/brands/products",
+            {"brand": "LEGO", "category": "6822101", "sold_by": "bigw",
+             "page": 1, "limit": 48, "state": "NSW"},
+        ),
+        (
+            "search",
+            f"{base}/products/search",
+            {"query": "lego", "category": "6822101", "brand": "LEGO",
+             "sold_by": "bigw", "page": 1, "limit": 48, "state": "NSW"},
+        ),
+    ]
+
+    last_error = None
+    selected_route = None
+    first_payload = None
+    for route_name, endpoint, params in routes:
+        try:
+            response = session().get(
+                endpoint, params=params, headers=headers,
+                timeout=(CONNECT_TIMEOUT, READ_TIMEOUT),
+            )
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+                raise ValueError("BIG W API response did not contain a results list")
+            selected_route = (route_name, endpoint, params)
+            first_payload = payload
+            print(f"BIG W API: using {route_name} endpoint.")
             break
+        except Exception as exc:
+            last_error = exc
+            print(f"BIG W API {route_name} endpoint failed: {format_error(exc)}")
+
+    if first_payload is None:
+        raise RuntimeError(
+            f"all documented BIG W API endpoints failed "
+            f"(last error: {format_error(last_error)})"
+        ) from last_error
+
+    route_name, endpoint, base_params = selected_route
+    total_pages = int(first_payload.get("total_pages") or 1)
+    total_pages = min(total_pages, 20)
+
+    for page in range(1, total_pages + 1):
+        payload = first_payload if page == 1 else None
+        if payload is None:
+            params = dict(base_params)
+            params["page"] = page
+            response = session().get(
+                endpoint, params=params, headers=headers,
+                timeout=(CONNECT_TIMEOUT, READ_TIMEOUT),
+            )
+            response.raise_for_status()
+            payload = response.json()
+
+        results = payload.get("results") or []
         for item in results:
             if str(item.get("brand", "")).strip().lower() != "lego":
                 continue
-            # Keep products sold by BIG W itself; exclude marketplace sellers.
             if str(item.get("sold_by", "")).strip().lower() != "big w":
                 continue
+
             pricing = item.get("pricing") or {}
-            amount = pricing.get("amount")
+            if str(pricing.get("currency") or "AUD").upper() != "AUD":
+                continue
             try:
-                amount = float(amount)
+                amount = float(pricing.get("amount"))
             except (TypeError, ValueError):
                 continue
             if amount <= 0:
                 continue
+
             product_url = item.get("link")
             if not product_url:
                 continue
-            product_url = product_url.split("?")[0]
+            product_url = product_url.split("?")[0].rstrip("/")
             name = str(item.get("name") or "").strip()
-            sku = str(item.get("id") or "")
+            article_id = str(item.get("id") or "")
             _BIGW_PRODUCT_CACHE[product_url] = {
                 "name": name,
                 "url": product_url,
-                "sku": sku,
+                "sku": article_id,
                 "price_aud": amount,
-                "currency": str((pricing.get("currency") or "AUD")).upper(),
-                "stock_status": "in_stock" if item.get("is_in_stock") else "out_of_stock",
-                "data_source": "BIG W listing via Omkar BIG W Scraper API",
+                "currency": "AUD",
+                "stock_status": (
+                    "in_stock" if item.get("is_in_stock") else "out_of_stock"
+                ),
+                "data_source": "BIG W listing via Big W Scraper API",
             }
             products.append(product_url)
-        total_pages = int(payload.get("total_pages") or page)
-        if page >= total_pages:
-            break
-        time.sleep(0.15)
-    return list(dict.fromkeys(products))
 
+        if page < total_pages:
+            time.sleep(0.2)
+
+    unique = list(dict.fromkeys(products))
+    print(f"BIG W API: fetched {len(unique)} BIG W LEGO listings across {total_pages} pages.")
+    return unique
 
 def discover_product_urls(retailer_key: str):
     api_fallback_error = None
