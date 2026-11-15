@@ -186,7 +186,7 @@ def get(url: str) -> str:
     try:
         print(f"Trying normal browser rendering for {url} after {format_error(last_error)}.")
         try:
-            return browser_get(url, disable_http2=("bigw.com.au" in url.lower()))
+            return browser_get(url)
         except Exception as browser_exc:
             # BIG W has returned ERR_HTTP2_PROTOCOL_ERROR from GitHub Actions.
             # Retry the same public page over HTTP/1.1-compatible Chromium mode.
