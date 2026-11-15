@@ -115,7 +115,7 @@ def format_error(exc: Exception) -> str:
     return f"{type(exc).__name__}: {str(exc)[:180]}" if str(exc) else type(exc).__name__
 
 
-def browser_get(url: str, *, disable_http2: bool = False) -> str:
+def browser_get(url: str, *, disable_http2: bool = False, timeout_ms: int = 60000) -> str:
     """Render a public page with Chromium without waiting for every network request.
 
     BIG W can occasionally terminate HTTP/2 sessions from hosted runners. For that
@@ -137,7 +137,7 @@ def browser_get(url: str, *, disable_http2: bool = False) -> str:
                     "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
                 ),
             )
-            response = page.goto(url, wait_until="commit", timeout=60000)
+            response = page.goto(url, wait_until="commit", timeout=timeout_ms)
             status = response.status if response is not None else None
             if status is not None and status in (401, 403):
                 raise RuntimeError(f"browser received HTTP {status}")
@@ -398,20 +398,29 @@ def discover_bigw_from_catalogue():
     errors = []
     seen_pages = set()
     page_limit = min(config.get("max_pages", 11), 20)
+    consecutive_fetch_failures = 0
 
     for page in range(1, page_limit + 1):
         page_url = config["category"] if page == 1 else f'{config["category"]}?page={page}'
         try:
             html = get_bigw_catalogue_page(page_url)
         except Exception as exc:
+            consecutive_fetch_failures += 1
             errors.append(
                 f'BIG W catalogue page {page}: {format_error(exc)} ({page_url})'
             )
-            # A single page can fail at BIG W's CDN while later pages remain
-            # available. Keep checking the remaining page numbers rather than
-            # abandoning the whole catalogue at the first transient failure.
+            # A single page failure may be transient, but repeated failures
+            # indicate the BIG W host is unreachable from this runner. Stop
+            # rather than spending several minutes retrying every page.
+            if consecutive_fetch_failures >= 2:
+                errors.append(
+                    "BIG W catalogue stopped after 2 consecutive page-fetch failures; "
+                    "the retailer host appears unreachable from this GitHub Actions runner."
+                )
+                break
             continue
 
+        consecutive_fetch_failures = 0
         soup = BeautifulSoup(html, "html.parser")
         page_urls = []
         for anchor in soup.select("a[href]"):
@@ -502,13 +511,13 @@ def get_bigw_catalogue_page(url: str) -> str:
     errors = []
     for candidate in candidates:
         last_error = None
-        # Keep each network attempt bounded so a dead route does not consume
-        # most of the scheduled workflow's runtime.
-        for attempt in range(2):
+        # BIG W is currently timing out from GitHub-hosted runners. Use one
+        # short request per public route before trying the browser fallback.
+        for attempt in range(1):
             try:
                 response = session().get(
                     candidate,
-                    timeout=(8, 25),
+                    timeout=(5, 12),
                     headers={
                         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                         "Referer": "https://www.bigw.com.au/",
@@ -544,7 +553,7 @@ def get_bigw_catalogue_page(url: str) -> str:
     browser_errors = []
     for candidate in candidates:
         try:
-            return browser_get(candidate, disable_http2=True)
+            return browser_get(candidate, disable_http2=True, timeout_ms=20000)
         except Exception as exc:
             browser_errors.append(f"{candidate}: {format_error(exc)}")
 
