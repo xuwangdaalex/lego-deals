@@ -12,6 +12,14 @@ A daily-updated JSON feed for LEGO products from seven Australian retailers:
 
 Amazon is not included.
 
+## BIG W catalogue page
+
+A separate browser page for BIG W product data is available at:
+
+https://xuwangdaalex.github.io/lego-deals/bigw.html
+
+The page reads BIG W entries from `api/all-products.json` and links to BIG W's live catalogue. It does not directly scrape BIG W in the browser; the GitHub Actions scraper must successfully collect BIG W data for products to appear.
+
 ## JSON endpoints
 
 After GitHub Pages has been enabled and the first deployment succeeds:
