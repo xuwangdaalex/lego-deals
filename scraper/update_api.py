@@ -115,12 +115,20 @@ def format_error(exc: Exception) -> str:
     return f"{type(exc).__name__}: {str(exc)[:180]}" if str(exc) else type(exc).__name__
 
 
-def browser_get(url: str) -> str:
-    """Render a public page with Chromium without waiting for every network request."""
+def browser_get(url: str, *, disable_http2: bool = False) -> str:
+    """Render a public page with Chromium without waiting for every network request.
+
+    BIG W can occasionally terminate HTTP/2 sessions from hosted runners. For that
+    retailer only, callers may retry using Chromium with HTTP/2 disabled; this is
+    a transport-compatibility retry, not an attempt to bypass access controls.
+    """
     if sync_playwright is None:
         raise RuntimeError("Playwright is not installed")
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        launch_options = {"headless": True}
+        if disable_http2:
+            launch_options["args"] = ["--disable-http2"]
+        browser = playwright.chromium.launch(**launch_options)
         try:
             page = browser.new_page(
                 locale="en-AU",
@@ -177,12 +185,25 @@ def get(url: str) -> str:
     # attempt to bypass CAPTCHAs, authentication, or access-denied responses.
     try:
         print(f"Trying normal browser rendering for {url} after {format_error(last_error)}.")
-        return browser_get(url)
-    except Exception as browser_exc:
-        raise RuntimeError(
-            f"requests failed ({format_error(last_error)}); "
-            f"browser fallback failed ({format_error(browser_exc)})"
-        ) from browser_exc
+        try:
+            return browser_get(url, disable_http2=("bigw.com.au" in url.lower()))
+        except Exception as browser_exc:
+            # BIG W has returned ERR_HTTP2_PROTOCOL_ERROR from GitHub Actions.
+            # Retry the same public page over HTTP/1.1-compatible Chromium mode.
+            if "bigw.com.au" in url.lower() and "ERR_HTTP2_PROTOCOL_ERROR" in str(browser_exc):
+                try:
+                    print(f"Retrying BIG W page with Chromium HTTP/2 disabled: {url}")
+                    return browser_get(url, disable_http2=True)
+                except Exception as retry_exc:
+                    raise RuntimeError(
+                        f"requests failed ({format_error(last_error)}); "
+                        f"browser fallback failed ({format_error(browser_exc)}); "
+                        f"HTTP/2-disabled retry failed ({format_error(retry_exc)})"
+                    ) from retry_exc
+            raise RuntimeError(
+                f"requests failed ({format_error(last_error)}); "
+                f"browser fallback failed ({format_error(browser_exc)})"
+            ) from browser_exc
 
 
 def jsonld_objects(soup: BeautifulSoup):
