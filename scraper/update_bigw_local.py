@@ -110,7 +110,8 @@ def scrape(headless: bool = False) -> list[dict]:
     collected: dict[str, dict] = {}
     total_products = None
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=headless)
+        # BIG W allows the user's installed Chrome but blocks bundled Chromium.
+        browser = playwright.chromium.launch(channel="chrome", headless=headless)
         context = browser.new_context(
             locale="en-AU",
             viewport={"width": 1440, "height": 1100},
