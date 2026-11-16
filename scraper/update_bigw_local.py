@@ -4,8 +4,9 @@
 Run from the repository root:
     python3 scraper/update_bigw_local.py
 
-This script updates only BIG W records in api/all-products.json, then refreshes
-the derived deal and coverage JSON files. It does not fetch other retailers.
+This script writes api/bigw-lego-data.json as a BIG W-only export, then updates
+BIG W records in api/all-products.json and refreshes derived deal/coverage files.
+It does not fetch other retailers.
 """
 from __future__ import annotations
 
