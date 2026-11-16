@@ -167,6 +167,7 @@ def merge_into_api(bigw_products: list[dict], scan_errors: list[str] | None = No
     deals_path = API / "lego-deals.json"
     updated_path = API / "last-updated.json"
     history_path = API / "history.json"
+    bigw_export_path = API / "bigw-lego-data.json"
 
     all_data = read_json(all_path, {"products": [], "coverage": {"retailers": {}}})
     products = all_data.get("products", [])
@@ -193,6 +194,16 @@ def merge_into_api(bigw_products: list[dict], scan_errors: list[str] | None = No
     merged = other_products + bigw_products
     merged.sort(key=lambda p: (p.get("retailer_name", ""), p.get("set_number", ""), p.get("name", "")))
     generated = datetime.now(timezone.utc).isoformat()
+
+    # Standalone BIG W-only export for testing and inspection.
+    write_json(bigw_export_path, {
+        "retailer": "BIG W",
+        "retailer_key": RETAILER_KEY,
+        "generated_at": generated,
+        "currency": "AUD",
+        "product_count": len(bigw_products),
+        "products": bigw_products,
+    })
 
     coverage = all_data.get("coverage") or {}
     retailers = coverage.setdefault("retailers", {})
@@ -283,6 +294,7 @@ def merge_into_api(bigw_products: list[dict], scan_errors: list[str] | None = No
 
     print("\nAPI updated successfully:")
     print(f"  BIG W products: {len(bigw_products)}")
+    print(f"  Standalone export: {bigw_export_path.relative_to(ROOT)}")
     print(f"  BIG W verified against Bricks Megastore: {retailers[RETAILER_KEY]['verified_products']}")
     print(f"  BIG W deals >= {THRESHOLD:.0f}%: {len(qualifying)}")
     print(f"  Total products across retailers: {len(merged)}")
