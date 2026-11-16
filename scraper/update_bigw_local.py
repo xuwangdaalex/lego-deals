@@ -123,7 +123,10 @@ def scrape(headless: bool = False) -> list[dict]:
                 print(f"Opening BIG W catalogue page {page_number}: {url}")
                 response = page.goto(url, wait_until="domcontentloaded", timeout=90000)
                 if response is not None and response.status >= 400:
-                    raise RuntimeError(f"BIG W returned HTTP {response.status} on page {page_number}")
+                    error = f"BIG W returned HTTP {response.status} on page {page_number}; scan stopped after {len(collected)} unique products."
+                    print(f"WARNING: {error}")
+                    scan_errors.append(error)
+                    break
 
                 # Wait for the actual product cards, not analytics or every network request.
                 page.locator('[data-testid="product-tile"]').first.wait_for(timeout=30000)
@@ -155,12 +158,13 @@ def scrape(headless: bool = False) -> list[dict]:
 
     if not collected:
         raise RuntimeError("No BIG W LEGO products were extracted. Existing API files were not changed.")
-    print(f"BIG W extraction complete: {len(collected)} unique products"
+    print(f"BIG W extraction {'partial' if scan_errors else 'complete'}: {len(collected)} unique products"
           + (f" out of {total_products} catalogue results." if total_products else "."))
-    return list(collected.values())
+    return list(collected.values()), scan_errors
 
 
-def merge_into_api(bigw_products: list[dict]):
+def merge_into_api(bigw_products: list[dict], scan_errors: list[str] | None = None):
+    scan_errors = scan_errors or []
     all_path = API / "all-products.json"
     deals_path = API / "lego-deals.json"
     updated_path = API / "last-updated.json"
@@ -205,8 +209,8 @@ def merge_into_api(bigw_products: list[dict]):
         "products_with_prices_checked": len(bigw_products),
         "verified_products": sum(1 for p in bigw_products if p.get("verified")),
         "qualifying_deals": len(qualifying),
-        "status": "complete",
-        "errors": [],
+        "status": "incomplete" if scan_errors else "complete",
+        "errors": scan_errors,
         "no_data": False,
         "source": "Local Playwright browser on user's Mac",
     }
@@ -296,8 +300,8 @@ def main():
         print("api/all-products.json not found. Run this script from a local clone of the lego-deals repository.")
         raise SystemExit(1)
 
-    products = scrape(headless=args.headless)
-    merge_into_api(products)
+    products, scan_errors = scrape(headless=args.headless)
+    merge_into_api(products, scan_errors)
 
 
 if __name__ == "__main__":
