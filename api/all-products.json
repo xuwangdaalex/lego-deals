@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T03:46:27.876905+00:00",
+  "generated_at": "2026-11-16T04:45:34.907208+00:00",
   "currency": "AUD",
   "coverage": {
     "complete": false,
@@ -17,10 +17,10 @@
       },
       "bigw": {
         "name": "BIG W",
-        "product_urls_discovered": 487,
-        "products_with_prices_checked": 487,
-        "verified_products": 305,
-        "qualifying_deals": 197,
+        "product_urls_discovered": 477,
+        "products_with_prices_checked": 477,
+        "verified_products": 301,
+        "qualifying_deals": 194,
         "status": "complete",
         "errors": [],
         "no_data": false,
@@ -106,8 +106,8 @@
         "reason": "No product URLs discovered"
       }
     ],
-    "product_count": 1848,
-    "verified_product_count": 1362,
+    "product_count": 1838,
+    "verified_product_count": 1358,
     "errors": [
       "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
       "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (997 bytes) (https://www.davidjones.com/brand/lego)",
@@ -968,22 +968,6 @@
     {
       "retailer": "bigw",
       "retailer_name": "BIG W",
-      "set_number": "11211",
-      "name": "LEGO Disney Junior Marvel Loki vs. Team Iron Man 11211",
-      "price_aud": 55.0,
-      "product_url": "https://www.bigw.com.au/product/lego-disney-junior-marvel-loki-vs-team-iron-man-11211/p/6061843",
-      "rrp_aud": 79.99,
-      "discount_percent": 31.24,
-      "rrp_url": "/products/lego-marvel-iron-man-and-his-awesome-friends-loki-vs-team-iron-man",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h4f/haa/137380564631582.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
       "set_number": "11212",
       "name": "LEGO Gabby's Dollhouse Kitty Fairy's Garden House 11212",
       "price_aud": 22.0,
@@ -1043,22 +1027,6 @@
       "verified": false,
       "stock_status": "unknown",
       "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h93/h8b/137050949812254.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "11221",
-      "name": "LEGO Bluey School with Rusty and Bluey 11221",
-      "price_aud": 29.0,
-      "product_url": "https://www.bigw.com.au/product/lego-bluey-school-with-rusty-and-bluey-11221/p/6061847",
-      "rrp_aud": 39.99,
-      "discount_percent": 27.48,
-      "rrp_url": "/products/lego-bluey-school-with-rusty-and-bluey",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/hd0/h8f/137050953580574.jpg",
       "promotion_label": null
     },
     {
@@ -1636,22 +1604,6 @@
       "stock_status": "unknown",
       "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/hf0/h8e/154075150680094.jpg",
       "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "21376",
-      "name": "LEGO Ideas Orange Cat 21376",
-      "price_aud": 99.0,
-      "product_url": "https://www.bigw.com.au/product/lego-ideas-orange-cat-21376/p/6051420",
-      "rrp_aud": null,
-      "discount_percent": null,
-      "rrp_url": null,
-      "rrp_source": null,
-      "verified": false,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h36/h92/120778608476190.jpg",
-      "promotion_label": "25% OFF"
     },
     {
       "retailer": "bigw",
@@ -3012,22 +2964,6 @@
       "stock_status": "unknown",
       "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h6e/hfd/117213359177758.jpg",
       "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "42687",
-      "name": "LEGO Friends Liann's Family House 42687",
-      "price_aud": 69.0,
-      "product_url": "https://www.bigw.com.au/product/lego-friends-liann-s-family-house-42687/p/6051417",
-      "rrp_aud": null,
-      "discount_percent": null,
-      "rrp_url": null,
-      "rrp_source": null,
-      "verified": false,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/he3/hd2/117236251656222.jpg",
-      "promotion_label": "20% OFF"
     },
     {
       "retailer": "bigw",
@@ -4488,22 +4424,6 @@
     {
       "retailer": "bigw",
       "retailer_name": "BIG W",
-      "set_number": "60496",
-      "name": "LEGO City Pizza Delivery Experience with Vehicles 60496",
-      "price_aud": 59.0,
-      "product_url": "https://www.bigw.com.au/product/lego-city-pizza-delivery-experience-with-vehicles-60496/p/6061856",
-      "rrp_aud": 89.99,
-      "discount_percent": 34.44,
-      "rrp_url": "/products/lego-city-pizza-delivery-experience-with-vehicles",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h0b/h55/137516361056286.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
       "set_number": "60497",
       "name": "LEGO City Drive-Through Car Wash 60497",
       "price_aud": 59.0,
@@ -5208,22 +5128,6 @@
     {
       "retailer": "bigw",
       "retailer_name": "BIG W",
-      "set_number": "72050",
-      "name": "LEGO Super Mario Mario Kart - Luigi & Mach 8 72050",
-      "price_aud": 189.0,
-      "product_url": "https://www.bigw.com.au/product/lego-super-mario-mario-kart-luigi-mach-8-72050/p/6061938",
-      "rrp_aud": null,
-      "discount_percent": null,
-      "rrp_url": null,
-      "rrp_source": null,
-      "verified": false,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h31/h6c/137328291545118.jpg",
-      "promotion_label": "20% OFF"
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
       "set_number": "72051",
       "name": "LEGO Super Mario Donkey Kong Arcade 72051",
       "price_aud": 229.0,
@@ -5299,22 +5203,6 @@
       "verified": true,
       "stock_status": "unknown",
       "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h10/h01/170057936404510.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "72155",
-      "name": "LEGO Pokemon SMART Play: Berry Bash with Bulbasaur and Bidoof 72155",
-      "price_aud": 29.0,
-      "product_url": "https://www.bigw.com.au/product/lego-pokemon-smart-play-berry-bash-with-bulbasaur-and-bidoof-72155/p/6080065",
-      "rrp_aud": 34.99,
-      "discount_percent": 17.12,
-      "rrp_url": "/products/lego-pokemon-smart-play-berry-bash-with-bulbasaur-and-bidoof",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/haf/h54/140337348673566.jpg",
       "promotion_label": null
     },
     {
@@ -5944,22 +5832,6 @@
     {
       "retailer": "bigw",
       "retailer_name": "BIG W",
-      "set_number": "75439",
-      "name": "LEGO Star Wars Darth Vader Bust 75439",
-      "price_aud": 67.0,
-      "product_url": "https://www.bigw.com.au/product/lego-star-wars-darth-vader-bust-75439/p/6051480",
-      "rrp_aud": null,
-      "discount_percent": null,
-      "rrp_url": null,
-      "rrp_source": null,
-      "verified": false,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h47/h4f/138288842735646.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
       "set_number": "75440",
       "name": "LEGO Star Wars AT-AT 75440",
       "price_aud": 72.0,
@@ -6148,22 +6020,6 @@
       "stock_status": "unknown",
       "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h64/h5d/154216475033630.jpg",
       "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "75455",
-      "name": "LEGO Star Wars Boba Fett 75455",
-      "price_aud": 179.0,
-      "product_url": "https://www.bigw.com.au/product/lego-star-wars-boba-fett-75455/p/6080043",
-      "rrp_aud": null,
-      "discount_percent": null,
-      "rrp_url": null,
-      "rrp_source": null,
-      "verified": false,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/hd5/hab/154217493889054.jpg",
-      "promotion_label": "20% OFF"
     },
     {
       "retailer": "bigw",
@@ -6483,22 +6339,6 @@
       "verified": false,
       "stock_status": "unknown",
       "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/hf9/h28/118821899862046.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "76335",
-      "name": "LEGO Super Heroes Marvel Spider-Man vs. Ghost Rider Motorcycle 76335",
-      "price_aud": 12.0,
-      "product_url": "https://www.bigw.com.au/product/lego-super-heroes-marvel-spider-man-vs-ghost-rider-motorcycle-76335/p/6051488",
-      "rrp_aud": null,
-      "discount_percent": null,
-      "rrp_url": null,
-      "rrp_source": null,
-      "verified": false,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h33/h25/118823066730526.jpg",
       "promotion_label": null
     },
     {

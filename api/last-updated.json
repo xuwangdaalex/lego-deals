@@ -1,9 +1,9 @@
 {
   "status": "incomplete",
-  "generated_at": "2026-11-16T03:46:27.876905+00:00",
-  "products_checked": 1848,
-  "verified_products": 1362,
-  "qualifying_deals": 306,
+  "generated_at": "2026-11-16T04:45:34.907208+00:00",
+  "products_checked": 1838,
+  "verified_products": 1358,
+  "qualifying_deals": 303,
   "retailers": {
     "myer": {
       "name": "Myer",
@@ -17,10 +17,10 @@
     },
     "bigw": {
       "name": "BIG W",
-      "product_urls_discovered": 487,
-      "products_with_prices_checked": 487,
-      "verified_products": 305,
-      "qualifying_deals": 197,
+      "product_urls_discovered": 477,
+      "products_with_prices_checked": 477,
+      "verified_products": 301,
+      "qualifying_deals": 194,
       "status": "complete",
       "errors": [],
       "no_data": false,

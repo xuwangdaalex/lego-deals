@@ -112,6 +112,14 @@
       "verified_products": 1362,
       "qualifying_deals": 306,
       "source": "Local BIG W refresh"
+    },
+    {
+      "generated_at": "2026-11-16T04:45:34.907208+00:00",
+      "status": "incomplete",
+      "products_checked": 1838,
+      "verified_products": 1358,
+      "qualifying_deals": 303,
+      "source": "Local BIG W refresh"
     }
   ]
 }

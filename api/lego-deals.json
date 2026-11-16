@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T03:46:27.876905+00:00",
+  "generated_at": "2026-11-16T04:45:34.907208+00:00",
   "currency": "AUD",
   "discount_threshold_percent": 20.0,
   "coverage": {
@@ -18,10 +18,10 @@
       },
       "bigw": {
         "name": "BIG W",
-        "product_urls_discovered": 487,
-        "products_with_prices_checked": 487,
-        "verified_products": 305,
-        "qualifying_deals": 197,
+        "product_urls_discovered": 477,
+        "products_with_prices_checked": 477,
+        "verified_products": 301,
+        "qualifying_deals": 194,
         "status": "complete",
         "errors": [],
         "no_data": false,
@@ -107,8 +107,8 @@
         "reason": "No product URLs discovered"
       }
     ],
-    "product_count": 1848,
-    "verified_product_count": 1362,
+    "product_count": 1838,
+    "verified_product_count": 1358,
     "errors": [
       "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
       "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (997 bytes) (https://www.davidjones.com/brand/lego)",
@@ -551,22 +551,6 @@
     {
       "retailer": "bigw",
       "retailer_name": "BIG W",
-      "set_number": "60496",
-      "name": "LEGO City Pizza Delivery Experience with Vehicles 60496",
-      "price_aud": 59.0,
-      "product_url": "https://www.bigw.com.au/product/lego-city-pizza-delivery-experience-with-vehicles-60496/p/6061856",
-      "rrp_aud": 89.99,
-      "discount_percent": 34.44,
-      "rrp_url": "/products/lego-city-pizza-delivery-experience-with-vehicles",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h0b/h55/137516361056286.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
       "set_number": "60497",
       "name": "LEGO City Drive-Through Car Wash 60497",
       "price_aud": 59.0,
@@ -928,22 +912,6 @@
       "verified": true,
       "stock_status": "unknown",
       "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h56/h26/117390472511518.jpg",
-      "promotion_label": null
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "11211",
-      "name": "LEGO Disney Junior Marvel Loki vs. Team Iron Man 11211",
-      "price_aud": 55.0,
-      "product_url": "https://www.bigw.com.au/product/lego-disney-junior-marvel-loki-vs-team-iron-man-11211/p/6061843",
-      "rrp_aud": 79.99,
-      "discount_percent": 31.24,
-      "rrp_url": "/products/lego-marvel-iron-man-and-his-awesome-friends-loki-vs-team-iron-man",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/h4f/haa/137380564631582.jpg",
       "promotion_label": null
     },
     {
@@ -1451,22 +1419,6 @@
       "rrp_source": "Bricks Megastore listing price",
       "verified": true,
       "stock_status": "unknown"
-    },
-    {
-      "retailer": "bigw",
-      "retailer_name": "BIG W",
-      "set_number": "11221",
-      "name": "LEGO Bluey School with Rusty and Bluey 11221",
-      "price_aud": 29.0,
-      "product_url": "https://www.bigw.com.au/product/lego-bluey-school-with-rusty-and-bluey-11221/p/6061847",
-      "rrp_aud": 39.99,
-      "discount_percent": 27.48,
-      "rrp_url": "/products/lego-bluey-school-with-rusty-and-bluey",
-      "rrp_source": "Bricks Megastore listing price",
-      "verified": true,
-      "stock_status": "unknown",
-      "image_url": "https://www.bigw.com.au/medias/sys_master/images/images/hd0/h8f/137050953580574.jpg",
-      "promotion_label": null
     },
     {
       "retailer": "bigw",
