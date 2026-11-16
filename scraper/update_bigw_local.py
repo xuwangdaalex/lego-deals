@@ -106,9 +106,10 @@ def parse_catalogue_page(html: str, page_url: str) -> tuple[list[dict], int | No
     return products, total
 
 
-def scrape(headless: bool = False) -> list[dict]:
+def scrape(headless: bool = False) -> tuple[list[dict], list[str]]:
     collected: dict[str, dict] = {}
     total_products = None
+    scan_errors: list[str] = []
     with sync_playwright() as playwright:
         # BIG W allows the user's installed Chrome but blocks bundled Chromium.
         browser = playwright.chromium.launch(channel="chrome", headless=headless)
