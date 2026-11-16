@@ -103,7 +103,7 @@ fi
 
 echo
 echo "Step 3/4: Checking generated API files..."
-for file in api/all-products.json api/lego-deals.json api/last-updated.json api/history.json; do
+for file in api/all-products.json api/lego-deals.json api/last-updated.json api/history.json api/bigw-lego-data.json; do
   if [ ! -s "$file" ]; then
     echo "ERROR: $file is missing or empty. Restoring previous API files."
     cp "$BACKUP_DIR"/*.json api/
@@ -126,8 +126,11 @@ bigw_count = sum(1 for p in products if p.get("retailer") == "bigw")
 print(f"Total products in all-products.json: {len(products)}")
 print(f"BIG W products: {bigw_count}")
 print(f"Overall API status: {data.get('coverage', {}).get('status', 'unknown')}")
-if bigw_count == 0:
-    raise SystemExit("Validation failed: no BIG W products were found.")
+bigw_file = Path("api/bigw-lego-data.json")
+bigw_data = json.loads(bigw_file.read_text(encoding="utf-8"))
+print(f"Products in bigw-lego-data.json: {bigw_data.get('product_count', len(bigw_data.get('products', [])))}")
+if bigw_count == 0 or not bigw_data.get("products"):
+    raise SystemExit("Validation failed: no BIG W products were found in the combined or standalone JSON file.")
 PY
 then
   echo "API validation failed. Restoring previous API files."
