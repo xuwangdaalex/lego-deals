@@ -3,12 +3,16 @@
 # It must be run from a local clone of xuwangdaalex/lego-deals.
 
 set -Eeuo pipefail
+BACKUP_DIR=""
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
 finish() {
   status=$?
+  if [ -n "${BACKUP_DIR:-}" ] && [ -d "$BACKUP_DIR" ]; then
+    rm -rf "$BACKUP_DIR"
+  fi
   echo
   if [ "$status" -eq 0 ]; then
     echo "=================================================="
@@ -84,13 +88,26 @@ echo "Step 1/5: Downloading the latest repository changes..."
 git pull --rebase origin main
 
 echo
+echo "Creating a safety copy of the current API files..."
+BACKUP_DIR="$(mktemp -d)"
+cp api/*.json "$BACKUP_DIR/"
+
+echo
 echo "Step 2/5: Fetching products from all configured retailers..."
 echo "This can take several minutes. Retailer access failures will be reported."
-"$PYTHON" scraper/update_api.py --force
+if ! "$PYTHON" scraper/update_api.py --force; then
+  echo "The all-store scraper failed. Restoring the previous API files."
+  cp "$BACKUP_DIR"/*.json api/
+  exit 1
+fi
 
 echo
 echo "Step 3/5: Refreshing BIG W using your installed Google Chrome..."
-"$PYTHON" scraper/update_bigw_local.py
+if ! "$PYTHON" scraper/update_bigw_local.py; then
+  echo "BIG W refresh failed. Restoring the previous API files so existing data is not lost."
+  cp "$BACKUP_DIR"/*.json api/
+  exit 1
+fi
 
 echo
 echo "Step 4/5: Checking generated API files..."
