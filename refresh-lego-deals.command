@@ -114,7 +114,7 @@ if ! "$PYTHON" - <<'PY'
 import json
 from pathlib import Path
 
-for name in ("all-products.json", "lego-deals.json", "last-updated.json", "history.json"):
+for name in ("all-products.json", "lego-deals.json", "last-updated.json", "history.json", "bigw-lego-data.json"):
     path = Path("api") / name
     with path.open(encoding="utf-8") as f:
         json.load(f)
