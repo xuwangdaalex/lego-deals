@@ -21,7 +21,7 @@ from urllib.parse import urljoin, urlparse
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
-    print("Playwright is missing. Install it with: python3 -m pip install playwright")
+    print("Playwright is missing. From the repository root, activate .venv-monterey and run: python -m pip install -r requirements-monterey.txt")
     raise SystemExit(1)
 
 ROOT = Path(__file__).resolve().parents[1]
