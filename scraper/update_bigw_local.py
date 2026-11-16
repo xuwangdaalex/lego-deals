@@ -113,11 +113,9 @@ def scrape(headless: bool = False) -> tuple[list[dict], list[str]]:
     with sync_playwright() as playwright:
         # BIG W allows the user's installed Chrome but blocks bundled Chromium.
         browser = playwright.chromium.launch(channel="chrome", headless=headless)
-        context = browser.new_context(
-            locale="en-AU",
-            viewport={"width": 1440, "height": 1100},
-        )
-        page = context.new_page()
+        # Use Playwright's default Chrome page, matching the successful local test.
+        # BIG W returned 403 with the custom browser context used previously.
+        page = browser.new_page()
         try:
             for page_number in range(1, MAX_PAGES + 1):
                 url = CATEGORY_URL if page_number == 1 else f"{CATEGORY_URL}?page={page_number}"
@@ -154,7 +152,6 @@ def scrape(headless: bool = False) -> tuple[list[dict], list[str]]:
                     break
                 time.sleep(1)
         finally:
-            context.close()
             browser.close()
 
     if not collected:
