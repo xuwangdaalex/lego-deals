@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T23:29:40.359859+00:00",
+  "generated_at": "2026-11-16T00:00:53.110572+00:00",
   "currency": "AUD",
   "discount_threshold_percent": 20.0,
   "coverage": {
@@ -70,7 +70,7 @@
         "qualifying_deals": 0,
         "status": "incomplete",
         "errors": [
-          "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (996 bytes) (https://www.davidjones.com/brand/lego)",
+          "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (997 bytes) (https://www.davidjones.com/brand/lego)",
           "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego)."
         ],
         "no_data": true
@@ -117,7 +117,7 @@
       "BIG W catalogue page 2: RuntimeError: direct catalogue requests failed (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1: ReadTimeout/ConnectTimeout; https://www.bigw.com.au/c/6822101?page=2&pp=1: ReadTimeout/ConnectTimeout); browser retries failed (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1\", waiting until \"commit\"\n; https://www.bigw.com.au/c/6822101?page=2&pp=1: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/c/6822101?page=2&pp=1\", waiting until \"commit\"\n) (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1)",
       "BIG W catalogue stopped after 2 consecutive page-fetch failures; the retailer host appears unreachable from this GitHub Actions runner.",
       "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
-      "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (996 bytes) (https://www.davidjones.com/brand/lego)",
+      "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (997 bytes) (https://www.davidjones.com/brand/lego)",
       "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego).",
       "EB Games catalogue page 1: HTTP 403 (https://www.ebgames.com.au/featured/lego)"
     ]
