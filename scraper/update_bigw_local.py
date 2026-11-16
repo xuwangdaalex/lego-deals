@@ -58,7 +58,7 @@ def parse_catalogue_page(html: str, page_url: str) -> tuple[list[dict], int | No
     total = int(total_match.group(1).replace(",", "")) if total_match else None
     products = []
 
-    for card in soup.select('article[data-testid="product-tile"]'):
+    for card in soup.select('[data-testid="product-tile"]'):
         name_node = card.select_one('[data-optly-product-tile-name]')
         price_node = card.select_one('[data-testid="price-value"]')
         link = card.select_one('a[href*="/product/"]')
@@ -125,7 +125,7 @@ def scrape(headless: bool = False) -> list[dict]:
                     raise RuntimeError(f"BIG W returned HTTP {response.status} on page {page_number}")
 
                 # Wait for the actual product cards, not analytics or every network request.
-                page.locator('article[data-testid="product-tile"]').first.wait_for(timeout=30000)
+                page.locator('[data-testid="product-tile"]').first.wait_for(timeout=30000)
                 page.wait_for_timeout(1500)
                 html = page.content()
                 products, detected_total = parse_catalogue_page(html, url)
