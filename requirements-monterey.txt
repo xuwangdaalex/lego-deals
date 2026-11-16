@@ -1,0 +1,5 @@
+# Isolated local environment for the BIG W scraper on macOS Monterey.
+# Keep Playwright pinned here; newer bundled Node runtimes fail on this OS.
+playwright==1.52.0
+beautifulsoup4>=4.12,<5
+requests>=2.31,<3
