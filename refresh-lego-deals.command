@@ -93,16 +93,8 @@ BACKUP_DIR="$(mktemp -d)"
 cp api/*.json "$BACKUP_DIR/"
 
 echo
-echo "Step 2/5: Fetching products from all configured retailers..."
-echo "This can take several minutes. Retailer access failures will be reported."
-if ! "$PYTHON" scraper/update_api.py --force; then
-  echo "The all-store scraper failed. Restoring the previous API files."
-  cp "$BACKUP_DIR"/*.json api/
-  exit 1
-fi
-
 echo
-echo "Step 3/5: Refreshing BIG W using your installed Google Chrome..."
+echo "Step 2/3: Refreshing BIG W only using your installed Google Chrome..."
 if ! "$PYTHON" scraper/update_bigw_local.py; then
   echo "BIG W refresh failed. Restoring the previous API files so existing data is not lost."
   cp "$BACKUP_DIR"/*.json api/
@@ -110,14 +102,15 @@ if ! "$PYTHON" scraper/update_bigw_local.py; then
 fi
 
 echo
-echo "Step 4/5: Checking generated API files..."
+echo "Step 3/3: Checking generated API files..."
 for file in api/all-products.json api/lego-deals.json api/last-updated.json api/history.json; do
   if [ ! -s "$file" ]; then
-    echo "ERROR: $file is missing or empty."
+    echo "ERROR: $file is missing or empty. Restoring previous API files."
+    cp "$BACKUP_DIR"/*.json api/
     exit 1
   fi
 done
-"$PYTHON" - <<'PY'
+if ! "$PYTHON" - <<'PY'
 import json
 from pathlib import Path
 
@@ -129,10 +122,18 @@ for name in ("all-products.json", "lego-deals.json", "last-updated.json", "histo
 
 data = json.loads(Path("api/all-products.json").read_text(encoding="utf-8"))
 products = data.get("products", [])
+bigw_count = sum(1 for p in products if p.get("retailer") == "bigw")
 print(f"Total products in all-products.json: {len(products)}")
-print(f"BIG W products: {sum(1 for p in products if p.get('retailer') == 'bigw')}")
+print(f"BIG W products: {bigw_count}")
 print(f"Overall API status: {data.get('coverage', {}).get('status', 'unknown')}")
+if bigw_count == 0:
+    raise SystemExit("Validation failed: no BIG W products were found.")
 PY
+then
+  echo "API validation failed. Restoring previous API files."
+  cp "$BACKUP_DIR"/*.json api/
+  exit 1
+fi
 
 echo
 echo "Step 5/5: Committing and pushing updated API files to GitHub..."
