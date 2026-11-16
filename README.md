@@ -60,29 +60,38 @@ GitHub Pages sites are publicly accessible. Make sure the repository and its con
 
 BIG W may be reachable in a normal browser on your Mac even when GitHub Actions cannot connect. The local scraper uses Playwright/Chromium and updates only BIG W records, preserving other retailer products already in the JSON files.
 
-1. Clone or pull the latest repository:
+1. Pull the latest repository changes:
    ```bash
    git pull
    ```
-2. Install the Python dependencies:
+2. Create a separate Python environment for Monterey. This does not change your system Python, Node.js, or existing Playwright installation:
    ```bash
-   python3 -m pip install requests beautifulsoup4 playwright
-   python3 -m playwright install chromium
+   python3 -m venv .venv-monterey
+   source .venv-monterey/bin/activate
+   python -m pip install --upgrade pip
+   python -m pip install -r requirements-monterey.txt
    ```
-3. From the repository root, run:
+   The Monterey requirements pin Playwright to an older release so it does not use the newer bundled Node runtime that failed on your Mac. This is a compatibility workaround, not a guarantee; we'll test it before running the full scraper.
+3. Install the matching Chromium browser:
    ```bash
-   python3 scraper/update_bigw_local.py
+   python -m playwright install chromium
+   ```
+4. From the repository root, run:
+   ```bash
+   python scraper/update_bigw_local.py
    ```
    Chromium opens and visits the BIG W LEGO catalogue pages. To run without showing the browser window:
    ```bash
-   python3 scraper/update_bigw_local.py --headless
+   python scraper/update_bigw_local.py --headless
    ```
-4. Review the updated files in `api/`, then publish them:
+5. Review the updated files in `api/`, then publish them:
    ```bash
    git add api/
    git commit -m "Update BIG W LEGO catalogue"
    git push
    ```
+
+To use this environment again later, run `source .venv-monterey/bin/activate` from the repository root before running the scraper.
 
 The local scraper reads product cards from BIG W's public catalogue. It stops if it cannot extract any products and does not overwrite API files in that case. BIG W discounts are verified against matching Bricks Megastore listing prices, which are a reference benchmark rather than official LEGO RRP.
 
