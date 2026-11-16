@@ -1,9 +1,9 @@
 {
   "status": "incomplete",
-  "generated_at": "2026-11-16T00:00:53.110572+00:00",
-  "products_checked": 1361,
-  "verified_products": 1057,
-  "qualifying_deals": 109,
+  "generated_at": "2026-11-16T03:46:27.876905+00:00",
+  "products_checked": 1848,
+  "verified_products": 1362,
+  "qualifying_deals": 306,
   "retailers": {
     "myer": {
       "name": "Myer",
@@ -17,17 +17,14 @@
     },
     "bigw": {
       "name": "BIG W",
-      "product_urls_discovered": 0,
-      "products_with_prices_checked": 0,
-      "verified_products": 0,
-      "qualifying_deals": 0,
-      "status": "incomplete",
-      "errors": [
-        "BIG W catalogue page 1: RuntimeError: direct catalogue requests failed (https://www.bigw.com.au/toys/lego/c/6822101: ReadTimeout/ConnectTimeout; https://www.bigw.com.au/c/6822101: ReadTimeout/ConnectTimeout); browser retries failed (https://www.bigw.com.au/toys/lego/c/6822101: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101\", waiting until \"commit\"\n; https://www.bigw.com.au/c/6822101: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/c/6822101\", waiting until \"commit\"\n) (https://www.bigw.com.au/toys/lego/c/6822101)",
-        "BIG W catalogue page 2: RuntimeError: direct catalogue requests failed (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1: ReadTimeout/ConnectTimeout; https://www.bigw.com.au/c/6822101?page=2&pp=1: ReadTimeout/ConnectTimeout); browser retries failed (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1\", waiting until \"commit\"\n; https://www.bigw.com.au/c/6822101?page=2&pp=1: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/c/6822101?page=2&pp=1\", waiting until \"commit\"\n) (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1)",
-        "BIG W catalogue stopped after 2 consecutive page-fetch failures; the retailer host appears unreachable from this GitHub Actions runner."
-      ],
-      "no_data": true
+      "product_urls_discovered": 487,
+      "products_with_prices_checked": 487,
+      "verified_products": 305,
+      "qualifying_deals": 197,
+      "status": "complete",
+      "errors": [],
+      "no_data": false,
+      "source": "Local Playwright browser on user's Mac"
     },
     "target": {
       "name": "Target",
@@ -89,31 +86,23 @@
   },
   "stores_with_no_data": [
     {
-      "retailer": "bigw",
-      "name": "BIG W",
-      "reason": "No product URLs discovered"
-    },
-    {
       "retailer": "kmart",
       "name": "Kmart",
-      "reason": "No product URLs discovered"
+      "reason": "No usable data"
     },
     {
       "retailer": "davidjones",
       "name": "David Jones",
-      "reason": "No product URLs discovered"
+      "reason": "No usable data"
     },
     {
       "retailer": "ebgames",
       "name": "EB Games",
-      "reason": "No product URLs discovered"
+      "reason": "No usable data"
     }
   ],
-  "message": "Only independently verified retailer prices and matching Australian LEGO RRPs qualify as deals.",
+  "message": "BIG W refreshed locally; other retailer records were preserved.",
   "errors": [
-    "BIG W catalogue page 1: RuntimeError: direct catalogue requests failed (https://www.bigw.com.au/toys/lego/c/6822101: ReadTimeout/ConnectTimeout; https://www.bigw.com.au/c/6822101: ReadTimeout/ConnectTimeout); browser retries failed (https://www.bigw.com.au/toys/lego/c/6822101: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101\", waiting until \"commit\"\n; https://www.bigw.com.au/c/6822101: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/c/6822101\", waiting until \"commit\"\n) (https://www.bigw.com.au/toys/lego/c/6822101)",
-    "BIG W catalogue page 2: RuntimeError: direct catalogue requests failed (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1: ReadTimeout/ConnectTimeout; https://www.bigw.com.au/c/6822101?page=2&pp=1: ReadTimeout/ConnectTimeout); browser retries failed (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1\", waiting until \"commit\"\n; https://www.bigw.com.au/c/6822101?page=2&pp=1: TimeoutError: Page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.bigw.com.au/c/6822101?page=2&pp=1\", waiting until \"commit\"\n) (https://www.bigw.com.au/toys/lego/c/6822101?page=2&pp=1)",
-    "BIG W catalogue stopped after 2 consecutive page-fetch failures; the retailer host appears unreachable from this GitHub Actions runner.",
     "Kmart catalogue page 1: HTTP 403 (https://www.kmart.com.au/category/toys/shop-all-lego/)",
     "David Jones browser catalogue fallback: RuntimeError: browser returned an unexpectedly short page (997 bytes) (https://www.davidjones.com/brand/lego)",
     "David Jones catalogue returned no product links after normal and browser fetch (https://www.davidjones.com/brand/lego).",
