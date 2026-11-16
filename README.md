@@ -55,3 +55,34 @@ GitHub Actions checks at the two UTC hours that cover 08:00 Sydney time across d
 3. Open **Actions** and run **Update LEGO deals API** once using **Run workflow**.
 
 GitHub Pages sites are publicly accessible. Make sure the repository and its contents are appropriate to publish.
+
+## Refresh BIG W locally on a Mac
+
+BIG W may be reachable in a normal browser on your Mac even when GitHub Actions cannot connect. The local scraper uses Playwright/Chromium and updates only BIG W records, preserving other retailer products already in the JSON files.
+
+1. Clone or pull the latest repository:
+   ```bash
+   git pull
+   ```
+2. Install the Python dependencies:
+   ```bash
+   python3 -m pip install requests beautifulsoup4 playwright
+   python3 -m playwright install chromium
+   ```
+3. From the repository root, run:
+   ```bash
+   python3 scraper/update_bigw_local.py
+   ```
+   Chromium opens and visits the BIG W LEGO catalogue pages. To run without showing the browser window:
+   ```bash
+   python3 scraper/update_bigw_local.py --headless
+   ```
+4. Review the updated files in `api/`, then publish them:
+   ```bash
+   git add api/
+   git commit -m "Update BIG W LEGO catalogue"
+   git push
+   ```
+
+The local scraper reads product cards from BIG W's public catalogue. It stops if it cannot extract any products and does not overwrite API files in that case. BIG W discounts are verified against matching Bricks Megastore listing prices, which are a reference benchmark rather than official LEGO RRP.
+
