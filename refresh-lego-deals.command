@@ -84,7 +84,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 echo
-echo "Step 1/5: Downloading the latest repository changes..."
+echo "Step 1/4: Downloading the latest repository changes..."
 git pull --rebase origin main
 
 echo
@@ -94,7 +94,7 @@ cp api/*.json "$BACKUP_DIR/"
 
 echo
 echo
-echo "Step 2/3: Refreshing BIG W only using your installed Google Chrome..."
+echo "Step 2/4: Refreshing BIG W only using your installed Google Chrome..."
 if ! "$PYTHON" scraper/update_bigw_local.py; then
   echo "BIG W refresh failed. Restoring the previous API files so existing data is not lost."
   cp "$BACKUP_DIR"/*.json api/
@@ -102,7 +102,7 @@ if ! "$PYTHON" scraper/update_bigw_local.py; then
 fi
 
 echo
-echo "Step 3/3: Checking generated API files..."
+echo "Step 3/4: Checking generated API files..."
 for file in api/all-products.json api/lego-deals.json api/last-updated.json api/history.json; do
   if [ ! -s "$file" ]; then
     echo "ERROR: $file is missing or empty. Restoring previous API files."
@@ -136,7 +136,7 @@ then
 fi
 
 echo
-echo "Step 5/5: Committing and pushing updated API files to GitHub..."
+echo "Step 4/4: Committing and pushing updated API files to GitHub..."
 git add api/
 
 if git diff --cached --quiet; then
